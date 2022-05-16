@@ -1,0 +1,7 @@
+google-cloud-storage
+google-api-core
+google-cloud-core
+google-auth
+google-cloud-bigquery
+numpy
+tifffile
