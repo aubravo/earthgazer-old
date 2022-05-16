@@ -5,3 +5,9 @@ google-auth
 google-cloud-bigquery
 numpy
 tifffile
+imagecodecs
+luigi
+psycopg2-binary
+rasterio
+httplib2
+google-api-python-client
