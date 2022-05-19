@@ -5,3 +5,5 @@ google-auth
 google-cloud-bigquery
 numpy
 tifffile
+imagecodecs
+cloud-sql-python-connector
