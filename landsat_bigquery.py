@@ -1,9 +1,8 @@
 """
 Este código realiza un BigQuery para obtener los códigos de imágen y su ubicación
 en el bucket de la base de datos abierta de Landsat en Google Cloud y sincroniza
-las fotografías de las banads para almacenarlas en el bucket del proyecto
+las fotografías de las bandas para almacenarlas en el bucket del proyecto
 """
-
 
 from google.cloud import bigquery
 from google.oauth2 import service_account
