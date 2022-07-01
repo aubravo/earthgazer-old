@@ -1,12 +1,12 @@
-FROM python:latest
+FROM python:3.8
 
-WORKDIR /app/gxiba
-RUN mkdir -p tmp
-RUN mkdir -p res
-COPY landsat_merge.py ./
-COPY keys.json ./
-COPY requirements.txt ./
+RUN mkdir -p /gxiba/src
 
+WORKDIR /gxiba/src
+
+COPY requirements.txt /gxiba/src
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "./landsat_merge.py"]
+COPY . /gxiba/src
+
+CMD ["python", "setup.py"]

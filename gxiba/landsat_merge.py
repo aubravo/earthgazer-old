@@ -11,7 +11,7 @@ storage.blob._DEFAULT_CHUNKSIZE = 2097152  # 1024 * 1024 B * 2 = 2 MB
 storage.blob._MAX_MULTIPART_SIZE = 2097152  # 2 MB
 
 bands = ["B2.TIF", "B3.TIF", "B4.TIF", "B6.TIF", "B7.TIF"]
-key_path = "./keys.json"
+key_path = "../keys.json"
 re_finder = re.compile(r"LANDSAT/(.*)?/")
 
 credentials = service_account.Credentials.from_service_account_file(
@@ -19,7 +19,7 @@ credentials = service_account.Credentials.from_service_account_file(
 )
 
 storage_client = storage.Client(credentials=credentials, project=credentials.project_id)
-gxiba_bucket = storage_client.get_bucket('gxiba-1')
+gxiba_bucket = storage_client.get_bucket('gxiba')
 
 imgs = storage_client.list_blobs(gxiba_bucket, prefix="LANDSAT")
 landsat_set = set()

@@ -31,12 +31,12 @@ cat copy2.txt > $urlsFile
 while read -r line
 do
   wget --content-disposition --continue --user=$user --password=$password \
-  --output-document=./temp/$line \
+  --output-document=./tmp/$line \
   "https://scihub.copernicus.eu/dhus/odata/v1/Products('$line')/\$value"
   size=$(stat -c%s "./temp/$line")
   if (( size > 0 )); then
     echo $line >> complete.txt
-    gsutil mv ./temp/$line gs://gxiba-1-bucket/rawzips/$line
+    gsutil mv ./tmp/$line gs://gxiba-1-bucket/rawzips/$line
   fi
   sleep 300
 done < $urlsFile

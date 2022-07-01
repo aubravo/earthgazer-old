@@ -71,7 +71,7 @@ def merge_dir(location):
             red_band = rasterio.open(res[0], driver='JP2OpenJPEG')
             green_band = rasterio.open(res[1], driver='JP2OpenJPEG')
             blue_band = rasterio.open(res[2], driver='JP2OpenJPEG')
-            rgb = rasterio.open('./temp/{}_rgb.tiff'.format(file), 'w', driver='Gtiff',
+            rgb = rasterio.open('./tmp/{}_rgb.tiff'.format(file), 'w', driver='Gtiff',
                                 width=red_band.width, height=red_band.height,
                                 count=3,
                                 crs=red_band.crs,
@@ -85,7 +85,7 @@ def merge_dir(location):
             vnir1_band = rasterio.open(res[3], driver='JP2OpenJPEG')
             vnir2_band = rasterio.open(res[4], driver='JP2OpenJPEG')
             vnir3_band = rasterio.open(res[5], driver='JP2OpenJPEG')
-            ir = rasterio.open('./temp/{}_vnir.tiff'.format(file),
+            ir = rasterio.open('./tmp/{}_vnir.tiff'.format(file),
                                'w', driver='Gtiff',
                                width=vnir1_band.width, height=vnir1_band.height,
                                count=3,
@@ -100,7 +100,7 @@ def merge_dir(location):
             vnir4_band = rasterio.open(res[6], driver='JP2OpenJPEG')
             swir1_band = rasterio.open(res[7], driver='JP2OpenJPEG')
             swir2_band = rasterio.open(res[8], driver='JP2OpenJPEG')
-            ir = rasterio.open('./temp/{}_swir.tiff'.format(file), 'w', driver='Gtiff',
+            ir = rasterio.open('./tmp/{}_swir.tiff'.format(file), 'w', driver='Gtiff',
                                width=vnir4_band.width, height=vnir4_band.height,
                                count=3,
                                crs=red_band.crs,

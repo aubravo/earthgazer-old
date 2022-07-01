@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 
 
 frame = "0005a38b-c525-4c83-aaee-f8e5cfd5d69e"
-location = "./temp/0005a38b-c525-4c83-aaee-f8e5cfd5d69e/" \
+location = "./tmp/0005a38b-c525-4c83-aaee-f8e5cfd5d69e/" \
            "S2A_MSIL2A_20210615T165851_N0300_R069_T14QNF_20210615T212307.SAFE/" \
            "GRANULE/" \
            "L2A_T14QNF_A031240_20210615T170711/" \
            "IMG_DATA/" \
            "R60m/T14QNF_20210615T165851_{}_60m.jp2"
 
-bands = ["./temp/{}_rgb.tiff".format(frame),
-         "./temp/{}_vnir.tiff".format(frame),
-         "./temp/{}_swir.tiff".format(frame)]
+bands = ["./tmp/{}_rgb.tiff".format(frame),
+         "./tmp/{}_vnir.tiff".format(frame),
+         "./tmp/{}_swir.tiff".format(frame)]
 
 
 for i in ["B01", "B02", "B03", "B04", "B04", "B06", "B07", "B8A", "B09", "B11", "B12"]:
