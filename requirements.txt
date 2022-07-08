@@ -6,8 +6,4 @@ google-cloud-bigquery
 numpy
 tifffile
 imagecodecs
-cloud-sql-python-connector
-pg8000
-sqlalchemy
-pyyaml
 luigi

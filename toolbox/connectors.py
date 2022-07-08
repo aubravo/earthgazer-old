@@ -1,5 +1,5 @@
 from google.oauth2 import service_account
-from google.cloud import bigquery, storage
+from google.cloud import bigquery
 import psycopg2
 import logging
 import json
@@ -40,16 +40,7 @@ class PgHandler:
 
 class BQHandler:
     def __init__(self, keypath="./keys.json", keys=None):
-        try:
-            if keys is not None:
-                credentials = service_account.Credentials.from_service_account_info(
-                    json.loads(keys))
-            else:
-                credentials = service_account.Credentials.from_service_account_file(
-                    keypath, scopes=["https://www.googleapis.com/auth/cloud-platform"],
-                )
-        except Exception as e:
-            raise Exception(e)
+        credentials = GCSCredentials(keypath=keypath, keys=keys).get_credentials()
         self.client = bigquery.Client(credentials=credentials, project=credentials.project_id)
         self.job_config = bigquery.QueryJobConfig(use_query_cache=False)
 
@@ -57,3 +48,17 @@ class BQHandler:
         return self.client.query(query, job_config=self.job_config)
 
 
+class GCSCredentials:
+    def __init__(self, keypath="./keys.json", keys=None):
+        try:
+            if keys is not None:
+                self.credentials = service_account.Credentials.from_service_account_info(
+                    json.loads(keys), scopes=["https://www.googleapis.com/auth/cloud-platform"])
+            else:
+                self.credentials = service_account.Credentials.from_service_account_file(
+                    keypath, scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        except Exception as e:
+            raise Exception(e)
+
+    def get_credentials(self):
+        return self.credentials
