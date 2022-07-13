@@ -1,7 +1,5 @@
 import os
-from toolbox.queries import get_by_status, change_status_by_id, \
-    landsat_bigquery, sentinel_bigquery,\
-    platform_insert, get_most_recent_date
+from toolbox.queries import *
 from google.oauth2 import service_account
 from google.cloud import bigquery
 import psycopg2
@@ -150,6 +148,7 @@ class ImageMerge(luigi.Task):
     image_bands = {}
 
     def requires(self):
+        main_pg_handler.execute(change_status_by_id.format(self.platform.lower(), 'Processing', self.id))
         if self.platform == 'SENTINEL':
             file = gcs_client.listdir("gs://gxiba/SENTINEL/{}/".format(self.id))
             for filename in file:
@@ -181,15 +180,15 @@ class ImageMerge(luigi.Task):
                         self.input()['blue'].open() as b_gcs,\
                         self.input()['green'].open() as g_gcs,\
                         open(basedir + "/r_temp.jp2", 'wb') as r_t,\
-                        open(basedir + "/b_temp.jp2", 'wb') as b_t,\
-                        open(basedir + "/g_temp.jp2", 'wb') as g_t:
+                        open(basedir + "/g_temp.jp2", 'wb') as g_t,\
+                        open(basedir + "/b_temp.jp2", 'wb') as b_t:
                     r_t.write(r_gcs.read())
-                    b_t.write(b_gcs.read())
                     g_t.write(g_gcs.read())
+                    b_t.write(b_gcs.read())
 
                 with rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as r_band,\
-                    rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as b_band,\
-                    rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as g_band,\
+                    rasterio.open(basedir + '/g_temp.jp2', driver='JP2OpenJPEG') as g_band,\
+                    rasterio.open(basedir + '/b_temp.jp2', driver='JP2OpenJPEG') as b_band,\
                     rasterio.open(basedir + '/rgb_temp.tiff', 'w+', driver='Gtiff', width=r_band.width, height=r_band.height, count=3,
                                   crs=r_band.crs, transform=r_band.transform, dtype='uint16') as rgb:
                     rgb.write(r_band.read(1), 1)
@@ -199,18 +198,56 @@ class ImageMerge(luigi.Task):
                 gcs_client.put(basedir + '/rgb_temp.tiff',
                                 "gs://gxiba/merged/SENTINEL/{}/{}_rgb.tiff".format(self.id, self.id))
 
+                with self.input()['swir1'].open() as sw1_gcs,\
+                        self.input()['swir2'].open() as sw2_gcs,\
+                        self.input()['swir3'].open() as sw3_gcs,\
+                        open(basedir + "/sw1_temp.jp2", 'wb') as sw1_t,\
+                        open(basedir + "/sw2_temp.jp2", 'wb') as sw2_t,\
+                        open(basedir + "/sw3_temp.jp2", 'wb') as sw3_t:
+                    sw1_t.write(sw1_gcs.read())
+                    sw2_t.write(sw2_gcs.read())
+                    sw3_t.write(sw3_gcs.read())
+
+                with rasterio.open(basedir + '/sw1_temp.jp2', driver='JP2OpenJPEG') as sw1_band,\
+                    rasterio.open(basedir + '/sw2_temp.jp2', driver='JP2OpenJPEG') as sw2_band,\
+                    rasterio.open(basedir + '/sw3_temp.jp2', driver='JP2OpenJPEG') as sw3_band,\
+                    rasterio.open(basedir + '/swir_temp.tiff', 'w+', driver='Gtiff', width=sw1_band.width,
+                                  height=sw1_band.height, count=3, crs=sw1_band.crs, transform=sw1_band.transform,
+                                  dtype='uint16') as swir:
+                    swir.write(sw1_band.read(1), 1)
+                    swir.write(sw2_band.read(1), 2)
+                    swir.write(sw3_band.read(1), 3)
+
+                gcs_client.put(basedir + '/swir_temp.tiff',
+                                "gs://gxiba/merged/SENTINEL/{}/{}_swir.tiff".format(self.id, self.id))
+
+                main_pg_handler.execute(change_status_by_id.format(self.platform.lower(), 'Merged', self.id))
+
         else:
             pass
 
     def output(self):
-        return GCSTarget(path="gs://gxiba/merged/SENTINEL/{id}/{id}_rgb.tiff".format(**{'id': self.id}),
+        yield GCSTarget(path="gs://gxiba/merged/SENTINEL/{id}/{id}_rgb.tiff".format(**{'id': self.id}),
+                         format=luigi.format.Nop,
+                         client=gcs_client)
+        yield GCSTarget(path="gs://gxiba/merged/SENTINEL/{id}/{id}_swir.tiff".format(**{'id': self.id}),
                          format=luigi.format.Nop,
                          client=gcs_client)
 
 
 class ImageQuery (luigi.Task):
+    platform = luigi.Parameter()
+
     def requires(self):
         pass
 
     def run(self):
+        len_=100000
+        while len_ > 0:
+            row = main_pg_handler.fetch(get_one_by_status.format(self.platform.lower(), 'SYNCED'))
+            print(row)
+            yield ImageMerge(id=row[0][0], platform=self.platform)
+            len_ = main_pg_handler.fetch(get_count_by_status.format(self.platform.lower(), 'SYNCED'))
+
+    def output(self):
         pass

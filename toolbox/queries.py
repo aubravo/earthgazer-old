@@ -71,6 +71,22 @@ WHERE
 status LIKE '{}'
 """
 
+get_one_by_status = """
+SELECT id, base_url
+FROM gxiba.{}
+WHERE
+status LIKE '{}'
+ORDER BY RANDOM()
+LIMIT 1;
+"""
+
+get_count_by_status = """
+SELECT COUNT(*)
+FROM gxiba.{}
+WHERE
+status LIKE '{}'
+"""
+
 change_status_by_id = """
 UPDATE gxiba.{}
 SET status = '{}'
