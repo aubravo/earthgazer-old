@@ -174,41 +174,31 @@ class ImageMerge(luigi.Task):
 
     def run(self):
         if self.platform == 'SENTINEL':
-            with self.input()['red'].open() as red, \
-                    tempfile.NamedTemporaryFile(delete=False) as rt, \
-                    tempfile.NamedTemporaryFile(delete=False) as rgbt:
-                rt.write(red.read())
-                with rasterio.open(rt.name, driver='JP2OpenJPEG') as red_band, \
-                        rasterio.open(rgbt.name, 'w+', driver='Gtiff',
-                                      width=red_band.width, height=red_band.height, count=3,
-                                      crs=red_band.crs, transform=red_band.transform, dtype='uint16') as rgb:
-                    rgb.write(red_band.read(1), 1)
-                    gcs_client.copy(rgbt.name,
-                                    "gs://gxiba/merged/SENTINEL/{id}/{id}_rgb.jp2".format(**{'id': self.id}))
+            with tempfile.TemporaryDirectory() as _dir:
+                basedir = _dir.replace('\\', '/').replace('C:/', 'C://')
+                print(basedir)
+                with self.input()['red'].open() as r_gcs,\
+                        self.input()['blue'].open() as b_gcs,\
+                        self.input()['green'].open() as g_gcs,\
+                        open(basedir + "\\r_temp.jp2", 'wb') as r_t,\
+                        open(basedir + "\\b_temp.jp2", 'wb') as b_t,\
+                        open(basedir + "\\g_temp.jp2", 'wb') as g_t:
+                    r_t.write(r_gcs.read())
+                    b_t.write(b_gcs.read())
+                    g_t.write(g_gcs.read())
 
-            """
-            with self.input()['red'].open() as red, \
-                    self.input()['blue'].open() as blue, \
-                    self.input()['green'].open() as green, \
-                    tempfile.NamedTemporaryFile() as rt,\
-                    tempfile.NamedTemporaryFile() as bt,\
-                    tempfile.NamedTemporaryFile() as gt, \
-                    tempfile.NamedTemporaryFile() as rgbt:
-                rt.write(red.read())
-                bt.write(blue.read())
-                gt.write(green.read())
-                with rasterio.open(rt.name, driver='JP2OpenJPEG') as red_band,\
-                        rasterio.open(bt.name, driver='JP2OpenJPEG') as blue_band,\
-                        rasterio.open(gt.name, driver='JP2OpenJPEG') as green_band,\
-                        rasterio.open(rgbt.name, 'w+', driver='Gtiff',
-                                      width=red_band.width, height=red_band.height, count=3,
-                                      crs=red_band.crs, transform=red_band.transform, dtype='uint16') as rgb:
-                    rgb.write(red_band.read(1), 1)
-                    rgb.write(green_band.read(1), 2)
-                    rgb.write(blue_band.read(1), 3)
-                    with self.output().open('w') as rgb_gcs:
-                        rgb_gcs.write(rgbt)
-            """
+                with rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as r_band,\
+                    rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as b_band,\
+                    rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as g_band,\
+                    rasterio.open(basedir + '/rgb_temp.tiff', 'w+', driver='Gtiff', width=r_band.width, height=r_band.height, count=3,
+                                  crs=r_band.crs, transform=r_band.transform, dtype='uint16') as rgb:
+                    rgb.write(r_band.read(1), 1)
+                    rgb.write(g_band.read(1), 2)
+                    rgb.write(b_band.read(1), 3)
+
+                gcs_client.copy(basedir + '/rgb_temp.tiff',
+                                "gs://gxiba/merged/SENTINEL/{}/{}_rgb.tiff".format(self.id,self.id))
+
         else:
             pass
 
