@@ -180,9 +180,9 @@ class ImageMerge(luigi.Task):
                 with self.input()['red'].open() as r_gcs,\
                         self.input()['blue'].open() as b_gcs,\
                         self.input()['green'].open() as g_gcs,\
-                        open(basedir + "\\r_temp.jp2", 'wb') as r_t,\
-                        open(basedir + "\\b_temp.jp2", 'wb') as b_t,\
-                        open(basedir + "\\g_temp.jp2", 'wb') as g_t:
+                        open(basedir + "/r_temp.jp2", 'wb') as r_t,\
+                        open(basedir + "/b_temp.jp2", 'wb') as b_t,\
+                        open(basedir + "/g_temp.jp2", 'wb') as g_t:
                     r_t.write(r_gcs.read())
                     b_t.write(b_gcs.read())
                     g_t.write(g_gcs.read())
@@ -196,8 +196,8 @@ class ImageMerge(luigi.Task):
                     rgb.write(g_band.read(1), 2)
                     rgb.write(b_band.read(1), 3)
 
-                gcs_client.copy(basedir + '/rgb_temp.tiff',
-                                "gs://gxiba/merged/SENTINEL/{}/{}_rgb.tiff".format(self.id,self.id))
+                gcs_client.put(basedir + '/rgb_temp.tiff',
+                                "gs://gxiba/merged/SENTINEL/{}/{}_rgb.tiff".format(self.id, self.id))
 
         else:
             pass
@@ -209,10 +209,8 @@ class ImageMerge(luigi.Task):
 
 
 class ImageQuery (luigi.Task):
-
     def requires(self):
         pass
 
     def run(self):
         pass
-

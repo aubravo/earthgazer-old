@@ -1,5 +1,5 @@
 # Gxiba #
-
+MUST BE RUN ON LINUX
 ## Deploy to Kubernetes Cluster ##
 
 ### Useful commands: ###
