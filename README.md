@@ -82,6 +82,8 @@ To Do
 [![Docker][Docker.com]][Docker-url]
 [![Google Cloud][cloud.google.com]][cloud-url]
 [![Apache Spark][spark.apache.org]][spark-url]
+[![TensorFlow][tensorflow.org]][tensorflow-url]
+[![Pandas][pandas.pydata.org]][pandas-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -190,7 +192,7 @@ Project Links:
 [issues-url]: https://github.com/aubravo/gxiba/issues
 [license-shield]: https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge
 [license-url]: https://github.com/aubravo/gxiba/blob/master/LICENSE.txt
-[Python.org]: https://img.shields.io/badge/Python-3.8-4B8BBE?style=for-the-badge&logo=Python&logoColor=4B8BBE
+[Python.org]: https://img.shields.io/badge/Python3-4B8BBE?style=for-the-badge&logo=Python&logoColor=FFD43B
 [Python-url]: https://python.org 
 [Kubernetes.io]: https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white
 [Kubernetes-url]: https://kubernetes.io
@@ -200,3 +202,7 @@ Project Links:
 [cloud-url]: https://cloud.google.com
 [spark.apache.org]: https://img.shields.io/badge/Apache_Spark-white?style=for-the-badge&logo=ApacheSpark&logoColor=E25A1C
 [spark-url]: https://spark.apache.org
+[tensorflow.org]: https://img.shields.io/badge/TensorFlow-425066?style=for-the-badge&logo=TensorFlow&logoColor=FF6F00
+[tensorflow-url]: https://tensorflow.org
+[pandas.pydata.org]: https://img.shields.io/badge/Pandas-white?style=for-the-badge&logo=Pandas&logoColor=150458
+[pandas-url]: https://pandas.pydata.org/
