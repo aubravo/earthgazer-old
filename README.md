@@ -21,11 +21,11 @@
 <h3 align="center">Gxiba</h3>
 
   <p align="center">
-"gxiba" stands for 'sky' or 'universe' in zapoteco language. It is also the name of the second satellite mission to be launched by UPAEP.
+'Gxiba' stands for 'sky' or 'universe' in Zapoteco language. It is also the name of the second satellite mission to be launched by UPAEP.
 
-I developed this library as part of my thesis for the Data Science and Business Intelligence masters degree. It contains and merges all the data pipeline methods used to build the volcanic ash detection capability for the mission.
+I developed this library as part of my thesis for the Data Science and Business Intelligence master's degree. It contains and merges all the data pipeline methods used to build the volcanic ash detection capability for the mission.
 
-It is structured in such a way that can allow to build upon further functionalities.
+It is structured in such a way that can allow to build upon further functionalities. If you are interested in participating, please feel free to contribute.
     <br />
     <a href="https://github.com/aubravo/gxiba"><strong>Explore the docs »</strong></a>
     <br />
