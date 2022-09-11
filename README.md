@@ -21,7 +21,7 @@
 <h1 align="center">Gxiba</h1>
 
   <p align="center">
-'Gxiba' stands for 'sky' or 'universe' in Zapoteco language. It is also the name of the second satellite mission to be launched by UPAEP.
+'Gxiba' stands for 'sky' or 'universe' in Zapoteco language. It is also the name of the second and third satellite missions to be launched by UPAEP.
 
 I developed this library as part of my Data Science and Business Intelligence master's degree thesis. It contains and merges all the data pipeline and data science methods used to build the volcanic ash detection capability for the Gxiba-1 and Gxiba-2 missions.
 
