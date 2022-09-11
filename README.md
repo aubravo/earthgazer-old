@@ -18,12 +18,12 @@
     <img src="images/mission-logo.png" alt="Mission Logo" width="156" height="195">
   </a>
 
-<h3 align="center">Gxiba</h3>
+<h1 align="center">Gxiba</h1>
 
   <p align="center">
 'Gxiba' stands for 'sky' or 'universe' in Zapoteco language. It is also the name of the second satellite mission to be launched by UPAEP.
 
-I developed this library as part of my thesis for the Data Science and Business Intelligence master's degree. It contains and merges all the data pipeline methods used to build the volcanic ash detection capability for the mission.
+I developed this library as part of my Data Science and Business Intelligence master's degree thesis. It contains and merges all the data pipeline and data science methods used to build the volcanic ash detection capability for the Gxiba-1 and Gxiba-2 missions.
 
 It is structured in such a way that can allow to build upon further functionalities. If you are interested in participating, please feel free to contribute.
     <br />
@@ -77,11 +77,11 @@ To Do
 
 ### Built With
 
-* [![Python][Python.org]][Python-url]
-* [![Kubernetes][Kubernetes.io]][Kubernetes-url]
-* [![Docker][Docker.com]][Docker-url]
-* [![Google Cloud][cloud.google.com]][cloud-url]
-* [![Apache Spark][spark.apache.org]][spark-url]
+[![Python][Python.org]][Python-url]
+[![Kubernetes][Kubernetes.io]][Kubernetes-url]
+[![Docker][Docker.com]][Docker-url]
+[![Google Cloud][cloud.google.com]][cloud-url]
+[![Apache Spark][spark.apache.org]][spark-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -158,7 +158,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com)
+Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com); [alvaroulises.bravo@upaep.edu.mx](mailto:alvaroulises.bravo@upaep.edu.mx)
 
 Project Links:
 * [Gxiba - GitHub](https://github.com/aubravo/gxiba)
@@ -190,7 +190,7 @@ Project Links:
 [issues-url]: https://github.com/aubravo/gxiba/issues
 [license-shield]: https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge
 [license-url]: https://github.com/aubravo/gxiba/blob/master/LICENSE.txt
-[Python.org]: https://img.shields.io/badge/Python-v3.10-4B8BBE?style=for-the-badge&logo=Python&logoColor=4B8BBE
+[Python.org]: https://img.shields.io/badge/Python-3.8-4B8BBE?style=for-the-badge&logo=Python&logoColor=4B8BBE
 [Python-url]: https://python.org 
 [Kubernetes.io]: https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white
 [Kubernetes-url]: https://kubernetes.io

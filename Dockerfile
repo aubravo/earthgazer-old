@@ -1,17 +1,10 @@
-FROM ubuntu:20.04
+from ubuntu:22.04
 
-RUN mkdir -p /gxiba/src
-COPY requirements.txt /gxiba/src
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get -y install python3.10 python3-pip default-jdk curl
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+ENV SPARK_HOME="/usr/local/lib/python3.10/dist-packages/pyspark"
+RUN echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))" >> ~/.bash.rc
+RUN geopyspark install-jar
 
-
-
-RUN apt-get update
-RUN apt-get install python3-pip -y
-RUN apt-get install python3 -y
-RUN python3 -m pip install -r /gxiba/src/requirements.txt
-
-WORKDIR /gxiba/src
-COPY . /gxiba/src
-RUN ln -s /usr/bin/python3.8 /usr/bin/python
-
-CMD ["python", "-m", "luigi", "--module", "gxiba", "ImageQuery", "--platform", "SENTINEL", "--local-scheduler"]
