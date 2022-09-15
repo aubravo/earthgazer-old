@@ -72,23 +72,23 @@ status LIKE '{}'
 """
 
 get_one_by_status = """
-SELECT id, base_url
-FROM gxiba.{}
+SELECT id
+FROM gxiba.{platform}
 WHERE
-status LIKE '{}'
+status LIKE '{status}'
 ORDER BY RANDOM()
 LIMIT 1;
 """
 
 get_count_by_status = """
 SELECT COUNT(*)
-FROM gxiba.{}
+FROM gxiba.{platform}
 WHERE
-status LIKE '{}'
+status LIKE '{status}'
 """
 
 change_status_by_id = """
-UPDATE gxiba.{}
-SET status = '{}'
-WHERE id = '{}'
+UPDATE gxiba.{platform}
+SET status = '{status}'
+WHERE id = '{id}'
 """
