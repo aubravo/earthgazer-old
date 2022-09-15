@@ -11,6 +11,8 @@ import luigi
 from luigi.contrib.gcs import GCSClient, GCSTarget
 import rasterio
 import tempfile
+import numpy as np
+from tifffile import imread, imwrite
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s \t %(name)s \t %(levelname)s \t %(message)s")
 
@@ -65,6 +67,14 @@ sentinel_bands = {'B04': 'red',
                   'B07': 'swir1',
                   'B11': 'swir2',
                   'B12': 'swir3'}
+
+landsat_bands = {"B2": 'blue',
+                 "B3": 'green',
+                 "B4": 'red',
+                 "B5": 'swir1',
+                 "B6": 'swir2',
+                 "B7": 'swir3'}
+
 env_vars = get_env_vars(['DB_HOST', 'DB_USER', 'DB_PASS', 'DB_NAME','SERVICEACCOUNTKEYS'])
 credentials = service_account.Credentials.from_service_account_info(
     json.loads(env_vars['SERVICEACCOUNTKEYS']),
@@ -145,92 +155,98 @@ class GetImages(luigi.ExternalTask):
 class ImageMerge(luigi.Task):
     platform = luigi.Parameter()
     id = luigi.Parameter()
-    image_bands = {}
 
     def requires(self):
         main_pg_handler.execute(change_status_by_id.format(self.platform.lower(), 'Processing', self.id))
+        files = gcs_client.listdir("gs://gxiba/{platform}/{id}/".format(**{'platform': self.platform,
+                                                                           'id': self.id}))
+        image_bands = {}
         if self.platform == 'SENTINEL':
-            file = gcs_client.listdir("gs://gxiba/SENTINEL/{}/".format(self.id))
-            for filename in file:
-                for band in sentinel_bands.keys():
-                    if band in filename:
-                        self.image_bands[sentinel_bands[band]] = filename
-                        break
-            if len(self.image_bands.keys()) < len(sentinel_bands.values()):
-                differences = ''
-                for missing_band in list(set(sentinel_bands.values()) - set(self.image_bands.keys())):
-                    differences = differences + missing_band + ','
-                main_pg_handler.execute(change_status_by_id.format(self.platform.lower(),
-                                                                   'Missing Bands:{}'.format(differences), self.id))
-            else:
-                return {band: GetImages(path=self.image_bands[band]) for band in self.image_bands.keys()}
-
+            band_list = sentinel_bands
         elif self.platform == 'LANDSAT':
-            for l in []:
-                pass
+            band_list = landsat_bands
         else:
-            raise KeyError('Platform not supported: {}'.format(self.platform))
+            raise Exception('Platform not supported.')
+
+        for filename in files:
+            for band in band_list.keys():
+                if band in filename:
+                    image_bands[band_list[band]] = filename
+                    break
+        if len(image_bands.keys()) < len(band_list.values()):
+            differences = ''
+            for missing_band in list(set(band_list.values()) - set(image_bands.keys())):
+                differences = differences + missing_band + ','
+            main_pg_handler.execute(change_status_by_id.format(self.platform.lower(),
+                                                               'Missing Bands: {}'.format(differences[:-1]),
+                                                               self.id))
+        else:
+            return {band: GetImages(path=image_bands[band]) for band in image_bands.keys()}
 
     def run(self):
-        if self.platform == 'SENTINEL':
-            with tempfile.TemporaryDirectory() as _dir:
-                basedir = _dir.replace('\\', '/').replace('C:/', 'C://')
-                print(basedir)
-                with self.input()['red'].open() as r_gcs,\
-                        self.input()['blue'].open() as b_gcs,\
-                        self.input()['green'].open() as g_gcs,\
-                        open(basedir + "/r_temp.jp2", 'wb') as r_t,\
-                        open(basedir + "/g_temp.jp2", 'wb') as g_t,\
-                        open(basedir + "/b_temp.jp2", 'wb') as b_t:
-                    r_t.write(r_gcs.read())
-                    g_t.write(g_gcs.read())
-                    b_t.write(b_gcs.read())
+        params = {'platform': self.platform,
+                  'id': self.id}
+        with tempfile.TemporaryDirectory() as _dir:
+            local_basedir = _dir.replace('\\', '/').replace('C:/', 'C://')
+            remote_basedir = 'gs://gxiba/merged/{platform}/{id}'.format(**params)
+            filename = '/{id}_{band_range}.tiff'
+            if self.platform == 'SENTINEL':
+                params['band_range'] = 'rgb'
+                bands = ['red', 'green', 'blue']
+                for band in bands:
+                    with self.input()[band].open as remote_file,\
+                            open(local_basedir + '/{}.jp2'.format(band),'wb')as local_file:
+                        local_file.write(remote_file.read())
 
-                with rasterio.open(basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as r_band,\
-                    rasterio.open(basedir + '/g_temp.jp2', driver='JP2OpenJPEG') as g_band,\
-                    rasterio.open(basedir + '/b_temp.jp2', driver='JP2OpenJPEG') as b_band,\
-                    rasterio.open(basedir + '/rgb_temp.tiff', 'w+', driver='Gtiff', width=r_band.width, height=r_band.height, count=3,
-                                  crs=r_band.crs, transform=r_band.transform, dtype='uint16') as rgb:
+                with rasterio.open(local_basedir + '/r_temp.jp2', driver='JP2OpenJPEG') as r_band,\
+                    rasterio.open(local_basedir + '/g_temp.jp2', driver='JP2OpenJPEG') as g_band,\
+                    rasterio.open(local_basedir + '/b_temp.jp2', driver='JP2OpenJPEG') as b_band,\
+                    rasterio.open(local_basedir + filename.format(**params), 'w+', driver='Gtiff',
+                                  width=r_band.width, height=r_band.height, count=3, crs=r_band.crs,
+                                  transform=r_band.transform, dtype='uint16') as rgb:
                     rgb.write(r_band.read(1), 1)
                     rgb.write(g_band.read(1), 2)
                     rgb.write(b_band.read(1), 3)
 
-                gcs_client.put(basedir + '/rgb_temp.tiff',
-                                "gs://gxiba/merged/SENTINEL/{}/{}_rgb.tiff".format(self.id, self.id))
+                gcs_client.put(local_basedir + filename.format(**params),
+                               remote_basedir + filename.format(**params))
 
                 with self.input()['swir1'].open() as sw1_gcs,\
                         self.input()['swir2'].open() as sw2_gcs,\
                         self.input()['swir3'].open() as sw3_gcs,\
-                        open(basedir + "/sw1_temp.jp2", 'wb') as sw1_t,\
-                        open(basedir + "/sw2_temp.jp2", 'wb') as sw2_t,\
-                        open(basedir + "/sw3_temp.jp2", 'wb') as sw3_t:
+                        open(local_basedir + "/sw1_temp.jp2", 'wb') as sw1_t,\
+                        open(local_basedir + "/sw2_temp.jp2", 'wb') as sw2_t,\
+                        open(local_basedir + "/sw3_temp.jp2", 'wb') as sw3_t:
                     sw1_t.write(sw1_gcs.read())
                     sw2_t.write(sw2_gcs.read())
                     sw3_t.write(sw3_gcs.read())
 
-                with rasterio.open(basedir + '/sw1_temp.jp2', driver='JP2OpenJPEG') as sw1_band,\
-                    rasterio.open(basedir + '/sw2_temp.jp2', driver='JP2OpenJPEG') as sw2_band,\
-                    rasterio.open(basedir + '/sw3_temp.jp2', driver='JP2OpenJPEG') as sw3_band,\
-                    rasterio.open(basedir + '/swir_temp.tiff', 'w+', driver='Gtiff', width=sw1_band.width,
+                with rasterio.open(local_basedir + '/sw1_temp.jp2', driver='JP2OpenJPEG') as sw1_band,\
+                    rasterio.open(local_basedir + '/sw2_temp.jp2', driver='JP2OpenJPEG') as sw2_band,\
+                    rasterio.open(local_basedir + '/sw3_temp.jp2', driver='JP2OpenJPEG') as sw3_band,\
+                    rasterio.open(local_basedir + '/swir_temp.tiff', 'w+', driver='Gtiff', width=sw1_band.width,
                                   height=sw1_band.height, count=3, crs=sw1_band.crs, transform=sw1_band.transform,
                                   dtype='uint16') as swir:
                     swir.write(sw1_band.read(1), 1)
                     swir.write(sw2_band.read(1), 2)
                     swir.write(sw3_band.read(1), 3)
 
-                gcs_client.put(basedir + '/swir_temp.tiff',
+                gcs_client.put(local_basedir + '/swir_temp.tiff',
                                 "gs://gxiba/merged/SENTINEL/{}/{}_swir.tiff".format(self.id, self.id))
 
-                main_pg_handler.execute(change_status_by_id.format(self.platform.lower(), 'Merged', self.id))
+                params['status'] = 'Merged'
+                main_pg_handler.execute(change_status_by_id.format(**params))
 
-        else:
-            pass
+            elif self.platform == 'LANDSAT':
+                pass
 
     def output(self):
-        yield GCSTarget(path="gs://gxiba/merged/SENTINEL/{id}/{id}_rgb.tiff".format(**{'id': self.id}),
+        yield GCSTarget(path="gs://gxiba/merged/{platform}/{id}/{id}_rgb.tiff".format(**{'id': self.id,
+                                                                                         'platform': self.platform}),
                          format=luigi.format.Nop,
                          client=gcs_client)
-        yield GCSTarget(path="gs://gxiba/merged/SENTINEL/{id}/{id}_swir.tiff".format(**{'id': self.id}),
+        yield GCSTarget(path="gs://gxiba/merged/{platform}/{id}/{id}_swir.tiff".format(**{'id': self.id,
+                                                                                          'platform': self.platform}),
                          format=luigi.format.Nop,
                          client=gcs_client)
 
@@ -242,12 +258,13 @@ class ImageQuery (luigi.Task):
         pass
 
     def run(self):
-        len_=100000
+        params = {'platform': self.platform,
+                  'status': 'SYNCED'}
+        len_ = main_pg_handler.fetch(get_count_by_status.format(**params))
         while len_ > 0:
-            row = main_pg_handler.fetch(get_one_by_status.format(self.platform.lower(), 'SYNCED'))
-            print(row)
-            yield ImageMerge(id=row[0][0], platform=self.platform)
-            len_ = main_pg_handler.fetch(get_count_by_status.format(self.platform.lower(), 'SYNCED'))
+            id_ = main_pg_handler.fetch(get_one_by_status.format(**params))[0][0]
+            yield ImageMerge(id=id_, platform=self.platform)
+            len_ = main_pg_handler.fetch(get_count_by_status.format(**params))
 
     def output(self):
         pass
