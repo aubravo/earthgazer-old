@@ -1,0 +1,21 @@
+logging-level:
+  get-help: 'Get current project logging level.'
+  set-help: 'Set current project logging level.'
+  set-arguments:
+    - logging-level:
+        kind: 'required'
+        type: 'str'
+        choices: |
+          ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+        help: 'Logging level. Can be any of: DEBUG, INFO, WARNING, ERROR or CRITICAL'
+        default: '"INFO"'
+logging-path:
+  get-help: 'Get the current project logs save path.'
+  set-help: 'Set a new current project logs save path.'
+  set-arguments:
+    - logging-path:
+        kind: 'required'
+        type: 'str'
+        choices: 'None'
+        help: 'Path to log file.'
+        default: '"/tmp/gxiba_log.txt"'

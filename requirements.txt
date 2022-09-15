@@ -1,13 +1,20 @@
-google-cloud-storage
-google-api-core
-google-cloud-core
-google-auth
-google-cloud-bigquery
+# google-api-core
+# google-api-python-client
+# google-auth
+# google-cloud-core
+# google-cloud-storage
+# google-cloud-bigquery
+# luigi
+# psycopg2-binary
+# httplib2
+# tifffile
+# imagecodecs
+pyspark
+geopyspark
+pandas
 numpy
-tifffile
-imagecodecs
-luigi
-psycopg2-binary
 rasterio
-httplib2
-google-api-python-client
+tensorflow
+matplotlib
+pyarrow
+PyYAML
