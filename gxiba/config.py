@@ -5,13 +5,17 @@ import os
 gxiba_path = os.path.expanduser('~') + '/.gxiba/'
 
 
-def get_parameter(parameter):
+def get_all_parameters():
     try:
         with open(gxiba_path + 'gxiba_config.yaml', 'r') as config_file:
             configuration = yaml.load(config_file, Loader=yaml.SafeLoader)
-        return configuration[parameter]
+        return configuration
     except FileNotFoundError:
         raise FileNotFoundError('No configuration file found. Try running "gxiba config init" first.')
+
+
+def get_parameter(parameter):
+    return get_all_parameters()[parameter]
 
 
 def set_parameter(parameter, new_value):
@@ -45,10 +49,8 @@ def process_parameters(**kwargs):
         parameter = kwargs['subcommand'][4:]
         new_value = kwargs[parameter]
         set_parameter(parameter, new_value)
-
     elif command == 'get':
         parameter = kwargs['subcommand'][4:]
         print(get_parameter(parameter))
-
     else:
         exec('{}(**kwargs)'.format(kwargs['subcommand']))
