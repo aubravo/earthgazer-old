@@ -1,62 +1,36 @@
 logging-level:
-  get-help: 'Logging: get logging level.'
-  set-help: 'Logging: set logging level.'
-  set-arguments:
-    - logging-level:
-        kind: 'required'
-        type: 'str'
-        choices: |
-          ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-        help: 'Logging level. Can be any of: DEBUG, INFO, WARNING, ERROR or CRITICAL'
-        default: '"INFO"'
+  help: 'Logging level. Can be any of: DEBUG, INFO, WARNING, ERROR or CRITICAL'
+  default: 'INFO'
 logging-path:
-  get-help: 'Logging: get logs save path.'
-  set-help: 'Logging: set logs save path.'
-  set-arguments:
-    - logging-path:
-        kind: 'required'
-        type: 'str'
-        choices: 'None'
-        help: 'Path to log file.'
-        default: '"/tmp/gxiba_log.txt"'
+  help: 'Path to log file.'
+  default: '/tmp/gxiba_log.txt'
 pg-user:
-  get-help: 'Postgres: get postgres user.'
-  set-help: 'Postgres: set postgres user.'
-  set-arguments:
-    - pg-user:
-        kind: 'required'
-        type: 'str'
-        choices: 'None'
-        help: 'Postgres database user.'
-        default: '"postgres"'
+  help: 'Postgres database user.'
+  default: 'postgres'
 pg-password:
-  get-help: 'Postgres: get postgres password.'
-  set-help: 'Postgres: set postgres password.'
-  set-arguments:
-    - pg-password:
-        kind: 'required'
-        type: 'str'
-        choices: 'None'
-        help: 'Postgres database password.'
-        default: '""'
+  help: 'Postgres database password.'
+  default: ''
 pg-address:
-  get-help: 'Postgres: get postgres path.'
-  set-help: 'Postgres: set postgres path.'
-  set-arguments:
-    - pg-address:
-        kind: 'required'
-        type: 'str'
-        choices: 'None'
-        help: 'Postgres database path.'
-        default: '"localhost"'
+  help: 'Postgres database path.'
+  default: 'localhost'
 pg-port:
-  get-help: 'Postgres: get postgres port.'
-  set-help: 'Postgres: set postgres port.'
-  set-arguments:
-    - pg-port:
-        kind: 'required'
-        type: 'int'
-        choices: 'None'
-        help: 'Postgres database port.'
-        default: '5432'
-
+  help: 'Postgres database port.'
+  default: '5432'
+sentinel-band-names:
+  help: 'Sentinel band name mapping'
+  default:
+    B04: 'red'
+    B03: 'green'
+    B02: 'blue'
+    B07: 'swir1'
+    B11: 'swir2'
+    B12: 'swir3'
+landsat-band-names:
+  help: 'LandSat band name mapping'
+  default:
+    B2: 'blue'
+    B3: 'green'
+    B4: 'red'
+    B5: 'swir1'
+    B6: 'swir2'
+    B7: 'swir3'
