@@ -16,15 +16,18 @@
 <br />
 <div align="center">
   <a href="https://github.com/aubravo/gxiba">
-    <img src="docs/images/mission-logo.png" alt="Mission Logo" width="156" height="195">
+    <img src="docs/images/mission-logo.png" alt="Mission Logo" width="156" height="180">
   </a>
 
-<h1 align="center">Gxiba</h1>
+<h1 align="center">gxiba</h1>
+
 
   <p align="center">
-'Gxiba' stands for 'sky' or 'universe' in Zapoteco language. It is also the name of the second and third satellite missions to be launched by UPAEP.
+<b>gxiba</b> means <b>sky</b> or <b>universe</b> in Zapoteco.
 
-I developed this library as part of my Data Science and Business Intelligence master's degree thesis. It contains and merges all the data pipeline and data science methods used to build the volcanic ash detection capability for the Gxiba-1 and Gxiba-2 missions.
+It is also the name of the second and third satellite missions to be launched by UPAEP.
+
+This library was developed as my Data Science and Business Intelligence master's degree thesis. It contains and merges all the data pipeline and data science methods used to build the volcanic ash detection capability for the Gxiba-1 and Gxiba-2 missions.
 
 It is structured in such a way that can allow to build upon further functionalities. If you are interested in participating, please feel free to contribute.
     <br />
@@ -94,9 +97,8 @@ To get started, you will need a **Google Console account** setup and meet the fo
 - **OPTIONAL:** a [GKE cluster](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster) if you are interested on running your application on Kubernetes.
 - **OPTIONAL:** a [VM]() for a PostgreSQL database hosting.
 
-### Installation {.tabset}
+### Installation 
 
-#### Run locally 
 If you are interested on running the application locally:
 ```commandline
 git clone https://github.com/aubravo/gxiba
@@ -132,8 +134,6 @@ export POSTGRES_PASSWORD=$(kubectl get secret gxiba-postgresql -o jsonpath="{.da
 
 ## Roadmap
 
-To-Do
-
 See the [open issues](https://github.com/aubravo/gxiba/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -144,12 +144,6 @@ Contributions are what make the open source community such an amazing place to l
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch `git checkout -b feature/AmazingFeature`)
-3. Commit your Changes        `git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch `git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -173,7 +167,9 @@ Project Links:
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
+* [UPAEP](https://upaep.mx/)
+* [CONACYT](https://conacyt.mx/)
+* [Agencia Espacial Mexicana](https://www.gob.mx/aem)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
