@@ -1,3 +1,4 @@
+
 <a name="readme-top"></a>
 
 <div align="center">
@@ -15,7 +16,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/aubravo/gxiba">
-    <img src="images/mission-logo.png" alt="Mission Logo" width="156" height="195">
+    <img src="docs/images/mission-logo.png" alt="Mission Logo" width="156" height="195">
   </a>
 
 <h1 align="center">Gxiba</h1>
@@ -35,8 +36,6 @@ It is structured in such a way that can allow to build upon further functionalit
     <a href="https://github.com/aubravo/gxiba/issues">Request Feature</a>
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -64,16 +63,11 @@ It is structured in such a way that can allow to build upon further functionalit
   </ol>
 </details>
 
-
-
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
 To Do
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 ### Built With
 
@@ -87,27 +81,42 @@ To Do
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- GETTING STARTED -->
 ## Getting Started
-
-To-Do 
 
 ### Prerequisites
 
-To-Do
+To get started, you will need a **Google Console account** setup and meet the following requirements:
+- a [GCP bucket](https://cloud.google.com/storage/docs/creating-buckets) setup for the project.
+- [_gsutil_](https://cloud.google.com/storage/docs/gsutil_install) and [_gcloud_](https://cloud.google.com/sdk/docs/install) installed on your machine
+- a [service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts) with at least the following roles:
+  - bigquery.user
+  - storage.objectAdmin (for security, only allow the service account access to the project bucket)
+- **OPTIONAL:** a [GKE cluster](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster) if you are interested on running your application on Kubernetes.
+- **OPTIONAL:** a [VM]() for a PostgreSQL database hosting.
 
-### Installation
+### Installation {.tabset}
+
+#### Run locally 
+If you are interested on running the application locally:
+```commandline
+git clone https://github.com/aubravo/gxiba
+```
+Move to the new `gxiba` directory:
+```commandline
+cd ./gxiba
+```
+and get your service account keys into the project folder by running:
+```commandline
+gcloud iam service-accounts keys create keys.json --iam-account=<your-service-account>
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Usage
 
 To-Do
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-To-Do
 
 ### Useful commands: ###
 
@@ -119,7 +128,8 @@ To get the password for "postgres" run:
 export POSTGRES_PASSWORD=$(kubectl get secret gxiba-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
 ```
 
-<!-- ROADMAP -->
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Roadmap
 
 To-Do
@@ -128,9 +138,6 @@ See the [open issues](https://github.com/aubravo/gxiba/issues) for a full list o
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -139,25 +146,19 @@ If you have a suggestion that would make this better, please fork the repo and c
 Don't forget to give the project a star! Thanks again!
 
 1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+2. Create your Feature Branch `git checkout -b feature/AmazingFeature`)
+3. Commit your Changes        `git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch `git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- CONTACT -->
 ## Contact
 
 Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com); [alvaroulises.bravo@upaep.edu.mx](mailto:alvaroulises.bravo@upaep.edu.mx)
@@ -172,8 +173,6 @@ Project Links:
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
 * []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

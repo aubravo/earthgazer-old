@@ -16,21 +16,35 @@ pg-address:
 pg-port:
   help: 'Postgres database port.'
   default: '5432'
-sentinel-band-names:
-  help: 'Sentinel band name mapping'
+sentinel-2-bands:
+  help: 'Sentinel band-name mapping'
   default:
-    B04: 'red'
-    B03: 'green'
+    B01: 'coastal'
     B02: 'blue'
-    B07: 'swir1'
+    B03: 'green'
+    B04: 'red'
+    B05: 'vegetation1'
+    B06: 'vegetation2'
+    B07: 'vegetation3'
+    B08: 'nir'
+    B09: 'water'
+    B10: 'swircirrus'
     B11: 'swir2'
     B12: 'swir3'
-landsat-band-names:
+landsat-8-bands:
   help: 'LandSat band name mapping'
   default:
+    B1: 'coastal'
     B2: 'blue'
     B3: 'green'
     B4: 'red'
-    B5: 'swir1'
-    B6: 'swir2'
-    B7: 'swir3'
+    B5: 'nir'
+    B6: 'swir1'
+    B7: 'swir2'
+    B8: 'pan'
+    B9: 'cirrus'
+    B10: 'tirs1'
+    B11: 'tirs2'
+gs-bucket:
+  help: 'Path to your gs-bucket'
+  default: 'gs://gxiba-storage/'
