@@ -48,3 +48,6 @@ landsat-8-bands:
 gs-bucket:
   help: 'Path to your gs-bucket'
   default: 'gs://gxiba-storage/'
+keys-path:
+  help: 'Path to Google service account keys.json file'
+  default: '../keys.json'

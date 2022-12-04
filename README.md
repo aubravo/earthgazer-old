@@ -1,4 +1,3 @@
-
 <a name="readme-top"></a>
 
 <div align="center">
@@ -11,8 +10,6 @@
 
 </div>
 
-
-<!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/aubravo/gxiba">
@@ -40,37 +37,22 @@ It is structured in such a way that can allow to build upon further functionalit
   </p>
 </div>
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+## Contents
+<!-- TOC -->
+* [About The Project](#about-the-project)
+  * [Built With](#built-with)
+* [Getting Started](#getting-started)
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+* [Useful commands](#useful-commands)
+* [Roadmap](#roadmap)
+* [Contributing](#contributing)
+* [License](#license)
+* [Contact](#contact)
+* [Acknowledgments](#acknowledgments)
+<!-- TOC -->
 
 ## About The Project
-
-To Do
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
@@ -81,8 +63,6 @@ To Do
 [![Apache Spark][spark.apache.org]][spark-url]
 [![TensorFlow][tensorflow.org]][tensorflow-url]
 [![Pandas][pandas.pydata.org]][pandas-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Getting Started
 
@@ -95,7 +75,7 @@ To get started, you will need a **Google Console account** setup and meet the fo
   - bigquery.user
   - storage.objectAdmin (for security, only allow the service account access to the project bucket)
 - **OPTIONAL:** a [GKE cluster](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster) if you are interested on running your application on Kubernetes.
-- **OPTIONAL:** a [VM]() for a PostgreSQL database hosting.
+- **OPTIONAL:** a [VM]() for a Postgres database hosting.
 
 ### Installation 
 
@@ -109,18 +89,10 @@ cd ./gxiba
 ```
 and get your service account keys into the project folder by running:
 ```commandline
-gcloud iam service-accounts keys create keys.json --iam-account=<your-service-account>
+gcloud iam service-accounts keys create keys.json --iam-account=your-service-account
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Usage
-
-To-Do
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Useful commands: ###
+## Useful commands: ##
 
 ```commandline
 helm install postgres bitnami/postgresql
@@ -130,41 +102,26 @@ To get the password for "postgres" run:
 export POSTGRES_PASSWORD=$(kubectl get secret gxiba-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## Roadmap
-
 See the [open issues](https://github.com/aubravo/gxiba/issues) for a full list of proposed features (and known issues).
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## Contributing
-
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## License
-
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contact
-
 Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com); [alvaroulises.bravo@upaep.edu.mx](mailto:alvaroulises.bravo@upaep.edu.mx)
 
 Project Links:
 * [Gxiba - GitHub](https://github.com/aubravo/gxiba)
 * [Gxiba - UPAEP](https://upaep.mx/gxiba/)
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
 * [UPAEP](https://upaep.mx/)
@@ -173,10 +130,6 @@ Project Links:
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/aubravo/gxiba.svg?style=for-the-badge
 [contributors-url]: https://github.com/aubravo/gxiba/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/aubravo/gxiba.svg?style=for-the-badge
