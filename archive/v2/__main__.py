@@ -3,7 +3,7 @@
 
 from arbutus import Arbutus
 import sys
-sys.path.append('.')
+sys.path.append('../../gxiba')
 
 if __name__ == "__main__":
     command_line_parser = Arbutus()

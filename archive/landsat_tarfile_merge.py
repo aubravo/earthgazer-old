@@ -32,7 +32,7 @@ def landsat_prep(loc):
     basename = blue[match.a:match.a+match.size][:-1]
 
     for i in [blue, green, red, nir, swir1, swir2]:
-        file_.extract(i, path="../tests/tmp/")
+        file_.extract(i, path="../test/tmp/")
 
     rgb = np.dstack((imread("./tmp/"+red),
                      imread("./tmp/"+green),

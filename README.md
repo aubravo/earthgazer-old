@@ -56,7 +56,7 @@ It is structured in such a way that can allow to build upon further functionalit
 
 ### Built With
 
-[![Python][Python.org]][Python-url]
+[![Python 3.11][Python.org]][Python-url]
 [![Kubernetes][Kubernetes.io]][Kubernetes-url]
 [![Docker][Docker.com]][Docker-url]
 [![Google Cloud][cloud.google.com]][cloud-url]
@@ -67,6 +67,8 @@ It is structured in such a way that can allow to build upon further functionalit
 ## Getting Started
 
 ### Prerequisites
+
+REQUIRES AT LEAST PYTHON 3.11 TO RUN.
 
 To get started, you will need a **Google Console account** setup and meet the following requirements:
 - a [GCP bucket](https://cloud.google.com/storage/docs/creating-buckets) setup for the project.

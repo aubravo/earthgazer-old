@@ -1,9 +1,24 @@
+
+google-cloud-storage
+google-cloud-bigquery
+pandas
+numpy
+pillow
+
+
+
+# Maybe no longer required packages
+
 # google-api-core
 # google-api-python-client
 # google-auth
 # google-cloud-core
-google-cloud-storage
-google-cloud-bigquery==3.2.0
+# rasterio
+# tensorflow
+# matplotlib
+# pyarrow
+# PyYAML
+# arbutus
 # luigi
 # psycopg2-binary
 # httplib2
@@ -11,11 +26,3 @@ google-cloud-bigquery==3.2.0
 # imagecodecs
 # pyspark
 # geopyspark
-pandas
-numpy
-# rasterio
-# tensorflow
-# matplotlib
-# pyarrow
-PyYAML
-arbutus
