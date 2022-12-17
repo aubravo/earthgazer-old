@@ -6,6 +6,5 @@ from gxiba.database_manager.sqllite_engine import SQLiteDataBaseEngine
 from gxiba.database_manager.postgres_engine import PostgresDataBaseEngine
 
 
-
 if __name__ == "__main__":
-    pass
+    print("WELCOME TO GXIBA!")
