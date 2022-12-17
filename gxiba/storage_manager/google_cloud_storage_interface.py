@@ -1,7 +1,7 @@
 import io
 import logging
 
-from gxiba.__storage_manager import CloudStorageInterface
+from gxiba.storage_manager import CloudStorageInterface
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -22,7 +22,6 @@ class GoogleCloudStorageInterface(CloudStorageInterface):
         return storage_client
 
     def download(self, remote_path, local_file: io.FileIO | str) -> None:
-        logging.debug(f'file type {type(remote_path)})')
         if type(local_file) == io.BufferedWriter:
             logging.debug('Downloading file into FileIO.')
             self.client.download_blob_to_file(remote_path, local_file)
@@ -31,7 +30,7 @@ class GoogleCloudStorageInterface(CloudStorageInterface):
                 logging.debug('Downloading file to provided path.')
                 self.client.download_blob_to_file(remote_path, save_file)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f'{type(local_file)} not supported.')
 
     def upload(self, local_path, remote_path):
         raise NotImplementedError
