@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from pathlib import Path
 import pandas
 import shutil
@@ -12,7 +11,7 @@ from gxiba import DataBaseManager, SQLiteDataBaseEngine
 
 class StorageManagerTest(unittest.TestCase):
     def setUp(self):
-        self.test_temp_path_string = "./tmp/"
+        self.test_temp_path_string = "./temp/"
         self.test_temp_path = Path(self.test_temp_path_string)
         self.test_temp_path.mkdir(parents=True, exist_ok=True)
         self.local_storage_manager = LocalStorageManager()

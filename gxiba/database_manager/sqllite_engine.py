@@ -17,8 +17,8 @@ class SQLiteDataBaseEngine(DataBaseEngine):
         self.setup_gxiba_table()
 
     def setup_gxiba_table(self):
-        self.execute("""CREATE TABLE IF NOT EXISTS gxiba_images
-                        (   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        self.execute("""CREATE TABLE IF NOT EXISTS gxiba_images(
+                            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                             platform TEXT,
                             platform_id TEXT,
                             sensing_time TEXT,
@@ -27,7 +27,7 @@ class SQLiteDataBaseEngine(DataBaseEngine):
                             longitude_west REAL,
                             longitude_east REAL,
                             base_url TEXT,
-                            status TEXT                                     ); """)
+                            status TEXT         ); """)
 
     def query(self, sql_query) -> pandas.DataFrame:
         return pandas.read_sql_query(sql=sql_query, con=self.engine)
@@ -39,7 +39,4 @@ class SQLiteDataBaseEngine(DataBaseEngine):
         self.connection.commit()
 
     def close(self):
-        self.connection.close()
-
-    def __delete__(self):
         self.connection.close()
