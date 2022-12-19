@@ -71,9 +71,9 @@ class LocalStorageManager:
 
 
 class CloudStorageManager:
-    def __init__(self, cloud_storage_interface: CloudStorageInterface, credentials=None):
+    def __init__(self, cloud_storage_interface: CloudStorageInterface, credentials: dict = None):
         if credentials is None:
-            credentials = {}
+            self.credentials = {}
         self._cloud_storage_interface = None
         self._create_cloud_storage_client(cloud_storage_interface, credentials)
 
