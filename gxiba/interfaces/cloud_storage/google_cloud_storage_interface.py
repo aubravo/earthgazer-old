@@ -33,7 +33,7 @@ class GoogleCloudStorageInterface(CloudStorageInterface):
             raise NotImplementedError(f'{type(local_file)} not supported.')
 
     def upload(self, local_path, remote_path):
-        # ToDo Implement upload GCS Storage method
+        # TODO Implement upload GCS Storage method!
         # labels: enhancement
         raise NotImplementedError
 
