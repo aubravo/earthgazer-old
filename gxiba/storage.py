@@ -4,10 +4,11 @@ This module provides interfaces to create and manage local storage, download and
 """
 
 from abc import abstractmethod
+from collections.abc import Callable
 import logging
 import os
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, Any
 
 
 class CloudStorageInterface(Protocol):
@@ -21,7 +22,7 @@ class CloudStorageInterface(Protocol):
         - upload
     """
 
-    client_: object
+    client_: Any
 
     def __init__(self, credentials):
         self.client_ = self.new_client(credentials)
@@ -71,7 +72,7 @@ class LocalStorageManager:
 
 
 class CloudStorageManager:
-    def __init__(self, cloud_storage_interface: CloudStorageInterface, credentials: dict = None):
+    def __init__(self, cloud_storage_interface: Any, credentials: dict = None):
         if credentials is None:
             self.credentials = {}
         self._cloud_storage_interface = None
@@ -81,7 +82,7 @@ class CloudStorageManager:
     def client(self):
         return self._cloud_storage_interface.client
 
-    def _create_cloud_storage_client(self, cloud_storage_interface: CloudStorageInterface, credentials: dict) -> None:
+    def _create_cloud_storage_client(self, cloud_storage_interface: Callable, credentials: dict) -> None:
         self._cloud_storage_interface = cloud_storage_interface(credentials)
 
     def download(self, remote_path, local_path):

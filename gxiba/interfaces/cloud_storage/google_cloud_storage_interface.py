@@ -1,7 +1,7 @@
 import io
 import logging
 
-from gxiba.storage_manager import CloudStorageInterface
+from gxiba.storage import CloudStorageInterface
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -33,4 +33,7 @@ class GoogleCloudStorageInterface(CloudStorageInterface):
             raise NotImplementedError(f'{type(local_file)} not supported.')
 
     def upload(self, local_path, remote_path):
+        # ToDo: Implement upload GCS Storage method
         raise NotImplementedError
+
+
