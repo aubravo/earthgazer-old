@@ -7,7 +7,7 @@ It uses Pillow as a basis to offer multiple format support.
 
 from PIL import Image
 
-# TODO Implement Image Processor
+# TODO Implement Image Processor!
 # labels: enhancement
 class ImageProcessor:
     def __init__(self):
