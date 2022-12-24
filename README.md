@@ -60,7 +60,6 @@ It is structured in such a way that can allow to build upon further functionalit
 [![Kubernetes][Kubernetes.io]][Kubernetes-url]
 [![Docker][Docker.com]][Docker-url]
 [![Google Cloud][cloud.google.com]][cloud-url]
-[![Apache Spark][spark.apache.org]][spark-url]
 [![TensorFlow][tensorflow.org]][tensorflow-url]
 [![Pandas][pandas.pydata.org]][pandas-url]
 
@@ -150,8 +149,6 @@ Project Links:
 [Docker-url]: https://docker.com
 [cloud.google.com]: https://img.shields.io/badge/Google_Cloud-DB4437?style=for-the-badge&logo=GoogleCloud&logoColor=F4B400
 [cloud-url]: https://cloud.google.com
-[spark.apache.org]: https://img.shields.io/badge/Apache_Spark-white?style=for-the-badge&logo=ApacheSpark&logoColor=E25A1C
-[spark-url]: https://spark.apache.org
 [tensorflow.org]: https://img.shields.io/badge/TensorFlow-425066?style=for-the-badge&logo=TensorFlow&logoColor=FF6F00
 [tensorflow-url]: https://tensorflow.org
 [pandas.pydata.org]: https://img.shields.io/badge/Pandas-white?style=for-the-badge&logo=Pandas&logoColor=150458
