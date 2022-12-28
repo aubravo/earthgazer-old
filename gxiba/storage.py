@@ -15,11 +15,6 @@ class CloudStorageInterface(Protocol):
     """Cloud Storage Manager.
 
     This protocol class acts as a template for creating Cloud Storage Interfaces with different providers.
-
-    The abstract methods required according to each provider logic for the Manager to work properly are:
-        - new_client
-        - download
-        - upload
     """
 
     client_: Any
@@ -49,6 +44,14 @@ class CloudStorageInterface(Protocol):
     def upload(self, local_file, remote_path):
         ...
 
+    @abstractmethod
+    def list(self, remote_path):
+        ...
+
+    @abstractmethod
+    def copy(self, source_path, destination_path):
+        ...
+
 
 class LocalStorageManager:
     def __init__(self):
@@ -72,22 +75,28 @@ class LocalStorageManager:
 
 
 class CloudStorageManager:
-    def __init__(self, cloud_storage_interface: Any, credentials: dict = None):
+    def __init__(self, cloud_storage_interface: Callable, credentials: dict = None):
         if credentials is None:
-            self.credentials = {}
-        self._cloud_storage_interface = None
-        self._create_cloud_storage_client(cloud_storage_interface, credentials)
+            credentials = {}
+        self._cloud_storage_interface = cloud_storage_interface(credentials)
 
     @property
     def client(self):
         return self._cloud_storage_interface.client
 
-    def _create_cloud_storage_client(self, cloud_storage_interface: Callable, credentials: dict) -> None:
-        self._cloud_storage_interface = cloud_storage_interface(credentials)
+    @property
+    def interface(self):
+        return self._cloud_storage_interface
 
     def download(self, remote_path, local_path):
         self._cloud_storage_interface.download(remote_path, local_path)
 
     def upload(self, local_path, remote_path):
         self._cloud_storage_interface.upload(local_path, remote_path)
+
+    def copy(self, source_path, destination_path):
+        self._cloud_storage_interface.copy(source_path, destination_path)
+
+    def list(self, remote_path):
+        yield from self._cloud_storage_interface.list(remote_path)
 
