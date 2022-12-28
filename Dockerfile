@@ -4,9 +4,7 @@ FROM python:3.11-alpine
 
 WORKDIR /gxiba
 
-ADD repositories /etc/apk/repositories
-
-RUN apk add --update gfortran py-numpy@community
+RUN apk add --update gfortran py3-numpy
 
 COPY requirements.txt requirements.txt
 
