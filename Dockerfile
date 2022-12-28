@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM ubuntu:jammy
+FROM python:3.11-alpine
 
 WORKDIR /gxiba
 
-RUN apt-get install gfortran gcc
+ADD repositories /etc/apk/repositories
+
+RUN apk add --update gfortran py-numpy@community
 
 COPY requirements.txt requirements.txt
 
