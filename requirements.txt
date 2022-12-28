@@ -2,7 +2,6 @@
 google-cloud-storage
 google-cloud-bigquery
 pandas
-numpy
 Pillow
 PyYAML
 SQLAlchemy
