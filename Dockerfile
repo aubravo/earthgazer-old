@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11-alpine
+FROM ubuntu:jammy
 
 WORKDIR /gxiba
+
+RUN apt-get install gfortran gcc
 
 COPY requirements.txt requirements.txt
 
