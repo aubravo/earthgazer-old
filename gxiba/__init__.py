@@ -1,5 +1,3 @@
-import datetime
-
 from gxiba.bigquery import BigQueryInterface
 from gxiba.data_objects import GxibaImageMetadata, SatelliteImagePlatform, ImageProcessingStatus, BigQueryPath, \
     database_get_from_platform_id, database_get_from_point, big_query_get_by_point
