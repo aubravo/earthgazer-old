@@ -88,7 +88,7 @@ jobs:
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          cosign sign --key env://COSIGN_PRIVATE_KEY ${TAGS}
+          cosign sign --key ${COSIGN_PRIVATE_KEY} ${TAGS}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
