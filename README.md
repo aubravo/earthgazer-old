@@ -1,17 +1,12 @@
 <a name="readme-top"></a>
 
-<div align="center">
-
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
-</div>
-
 <div>
-
 <br />
 <p align="center">
 <a href="https://github.com/aubravo/gxiba">
@@ -20,7 +15,6 @@
 <h1 align="center">GXIBA</h1>
 </div>
 
----
 <div>
 <br />
 <p align="center">
@@ -40,11 +34,11 @@
 <b>Esteban Rios Cruz</b> (<b>Laanu’</b> / Nosotros)
 <br />
 <br />
-</p></div>
+</p>
+</div>
 
----
-
-<div><p align="center">
+<div>
+<p align="center">
 <br />
 <b>Gxiba</b> means <b>sky</b> or <b>universe</b> in Zapoteco.
 UPAEP's second and third satellite missions are named as such.
@@ -68,7 +62,6 @@ If you are interested in participating, please feel free to contribute.
 </p>
 </div>
 
----
 ## Contents
 <!-- TOC -->
   * [Contents](#contents)
@@ -85,7 +78,6 @@ If you are interested in participating, please feel free to contribute.
   * [Acknowledgments](#acknowledgments)
 <!-- TOC --> 
 
----
 ## About The Project
 
 ### Built With
