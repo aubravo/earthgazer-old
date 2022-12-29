@@ -5,6 +5,8 @@ pandas
 Pillow
 PyYAML
 SQLAlchemy
+# numpy required if installed locally
+
 
 # Maybe no longer required packages
 # google-api-core
@@ -13,6 +15,3 @@ SQLAlchemy
 # google-cloud-core
 # tensorflow
 # pyarrow
-# httplib2
-# pyspark
-# geopyspark

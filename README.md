@@ -13,10 +13,6 @@
 <img src="docs/images/mission-logo.png" alt="Mission Logo" width="156" height="180">
 </a>
 <h1 align="center">GXIBA</h1>
-</div>
-
-<div>
-<br />
 <p align="center">
 <b>Guiranu bíchinu</b> / Todos somos hermanos,
 <br />
@@ -34,11 +30,6 @@
 <b>Esteban Rios Cruz</b> (<b>Laanu’</b> / Nosotros)
 <br />
 <br />
-</p>
-</div>
-
-<div>
-<p align="center">
 <br />
 <b>Gxiba</b> means <b>sky</b> or <b>universe</b> in Zapoteco.
 UPAEP's second and third satellite missions are named as such.

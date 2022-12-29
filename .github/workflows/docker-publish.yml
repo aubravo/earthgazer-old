@@ -82,6 +82,6 @@ jobs:
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          cosign sign --key cosign.key ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.run_id }}
+          cosign sign --key cosign.key ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.run_id }}
         env:
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}

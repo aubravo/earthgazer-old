@@ -4,7 +4,8 @@ from gxiba.data_objects import GxibaImageMetadata, SatelliteImagePlatform, Image
 from gxiba.database import DataBaseInterface
 from gxiba.image_processor import ImageProcessor
 from gxiba.interfaces.gcs_interface import GoogleCloudStorageInterface
-from gxiba.storage import LocalStorageManager, CloudStorageManager
+from gxiba.local_storage import LocalStorageManager
+from gxiba.cloud_storage import CloudStorageManager
 
 POPOCATEPETL_CRATER_LATITUDE = 19.023370
 POPOCATEPETL_CRATER_LONGITUDE = -98.622864

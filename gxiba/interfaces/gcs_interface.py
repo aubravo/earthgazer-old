@@ -7,7 +7,7 @@ from google.cloud import storage
 from google.cloud.storage import Bucket, Blob
 from google.oauth2 import service_account
 
-from gxiba.storage import CloudStorageInterface
+from gxiba.cloud_storage import CloudStorageInterface
 
 
 def get_bucket_name(path):
@@ -29,7 +29,7 @@ class GoogleCloudStorageInterface(CloudStorageInterface):
         self._destination_bucket = None
         super().__init__(credentials)
 
-    def new_client(self, credentials: dict) -> storage.client.Client:
+    def client_startup(self, credentials: dict) -> storage.client.Client:
         service_account_credentials = service_account.Credentials.from_service_account_info(
             credentials,
             scopes=["https://www.googleapis.com/auth/cloud-platform"]
