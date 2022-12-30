@@ -6,6 +6,7 @@ google-cloud-storage
 google-cloud-bigquery
 pandas
 Pillow
+psycopg2
 PyYAML
 SQLAlchemy
 # tensorflow
