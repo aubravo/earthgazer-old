@@ -2,8 +2,7 @@
 
 This module provides an interface for image processing tools to be applied to satellite images.
 
-It uses Pillow as a basis to offer multiple format support.
-"""
+It uses Pillow as a basis to offer multiple format support."""
 
 from PIL import Image
 
