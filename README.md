@@ -4,7 +4,8 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+[![MIT License](https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/blob/master/LICENSE.txt)
+[![Docker](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml)
 
 <div>
 <br />
@@ -146,8 +147,6 @@ Project Links:
 [stars-url]: https://github.com/aubravo/gxiba/stargazers
 [issues-shield]: https://img.shields.io/github/issues/aubravo/gxiba.svg?style=for-the-badge
 [issues-url]: https://github.com/aubravo/gxiba/issues
-[license-shield]: https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge
-[license-url]: https://github.com/aubravo/gxiba/blob/master/LICENSE.txt
 [Python.org]: https://img.shields.io/badge/Python3-4B8BBE?style=for-the-badge&logo=Python&logoColor=FFD43B
 [Python-url]: https://python.org 
 [Kubernetes.io]: https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white

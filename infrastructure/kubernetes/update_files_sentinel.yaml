@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gxiba-update-files-sentinel
+spec:
+  containers:
+    - name: gxiba-update-files-sentinel
+      image: alvaroubravo/gxiba:main
+      command: [ "python"]
+      args: ["./examples/update_files.py", "--verbose", "--db-kind", "postgresql", "--db-host", "$(DB_HOST)", "--db-username", "$(DB_USERNAME)", "--db-password", "$(DB_PASSWORD)", "--db-port", "$(DB_PORT)", "--db-name", "$(DB_NAME)", "--get-keys-from-env", "--skip-landsat" ]
+      envFrom:
+      - secretRef:
+          name: google-service-account-keys
+  restartPolicy: Never
