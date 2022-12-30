@@ -8,5 +8,5 @@ pandas
 Pillow
 PyYAML
 SQLAlchemy
-tensorflow
-numpy
+# tensorflow
+# numpy
