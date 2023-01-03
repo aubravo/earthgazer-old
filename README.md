@@ -1,11 +1,11 @@
 <a name="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
+[![Contributors](https://img.shields.io/github/contributors/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/network/members)
+[![Stargazers](https://img.shields.io/github/stars/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/stargazers)
+[![Issues](https://img.shields.io/github/issues/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/issues)
 [![MIT License](https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/blob/master/LICENSE.txt)
-[![Docker](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml)
+[![Docker](https://img.shields.io/github/actions/workflow/status/aubravo/gxiba/docker-publish.yml?style=for-the-badge&logo=github)](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml)
 
 <div>
 <br />
@@ -34,12 +34,13 @@
 <br />
 <b>Gxiba</b> means <b>sky</b> or <b>universe</b> in Zapoteco.
 UPAEP's second and third satellite missions are named as such.
-This library is part of my Data Science and Business Intelligence master's degree thesis.
-It constructs and manages the data pipeline and infrastructure for managing various satellite image inputs, handle and
-process them, as well as manage the machine learning training and testing processes.
-It is constructed in such way to allow for the coupling of diverse internal SQL Databases, and allow for the introduction
-of diverse traditional image pre-processing methods using Python Pillow as a basis.
-However, the test setup is configured in such a way as to construct the volcanic ash detection capability for the 
+This library manages the data pipeline and infrastructure for image inputs, handle and pre-process them, to prepare
+for the machine learning training and testing processes.
+It allows for the coupling of diverse internal SQL Databases, and use of diverse traditional image processing using
+Python Pillow as a basis.
+<br />
+<br />
+The examples folder includes scripts that allow to construct the volcanic ash detection capability for the 
 Gxiba-1 and Gxiba-2 missions.
 <br />
 <br />
@@ -72,20 +73,26 @@ If you are interested in participating, please feel free to contribute.
 
 ## About The Project
 
+This project started as part of [Alvaro Bravo](mailto:alvaroubravo@gmail.com)'s Master's thesis as a way to
+develop the capability of segregating volcanic emissions from clouds in satellite images in RGB, by training a CNN
+with images from Sentinel and Landsat missions which offer hyperspectral data that allows the labelling of data for
+training the neural network. Even though, the target of the project is the Popocatepetl volcano, it's built in such
+a way as to allow the use of the infrastructure to explore and handle satellite images from different sources and
+locations.
+
 ### Built With
 
-[![Python 3.11][Python.org]][Python-url]
-[![Kubernetes][Kubernetes.io]][Kubernetes-url]
-[![Docker][Docker.com]][Docker-url]
-[![Google Cloud][cloud.google.com]][cloud-url]
-[![TensorFlow][tensorflow.org]][tensorflow-url]
-[![Pandas][pandas.pydata.org]][pandas-url]
+[![Python 3.11](https://img.shields.io/badge/Python3-4B8BBE?style=for-the-badge&logo=Python&logoColor=FFD43B)](https://python.org)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white)](https://kubernetes.io)
+[![Docker](https://img.shields.io/badge/Docker-0db7ed?style=for-the-badge&logo=Docker&logoColor=white)](https://docker.com)
+[![Google Cloud](https://img.shields.io/badge/Google_Cloud-DB4437?style=for-the-badge&logo=GoogleCloud&logoColor=F4B400)](https://cloud.google.com)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-425066?style=for-the-badge&logo=TensorFlow&logoColor=FF6F00)](https://tensorflow.org)
 
 ## Getting Started
 
 ### Prerequisites
 
-> IMPORTANT **REQUIRES AT LEAST PYTHON 3.11 TO RUN.**
+> IMPORTANT: The data handling side of the project **REQUIRES AT LEAST PYTHON 3.11 TO RUN.** due to collections.abc changes required for the implemented protocols. 
 
 To get started, you will need a **Google Console account** setup and meet the following requirements:
 - a [GCP bucket](https://cloud.google.com/storage/docs/creating-buckets) setup for the project.
@@ -106,8 +113,30 @@ and get your service account keys into the project folder by running:
 ```commandline
 gcloud iam service-accounts keys create keys.json --iam-account=your-service-account
 ```
+if you are interested on running the application on kubernetes, both `kubectl` and a project database are required.
+Once your cluster is set up and is accessible by kubectl, it is recommended to pass the database connection requirements
+as a cluster secret, as well as the contents of the service account. For example:
+
+```commandline
+kubectl create secret generic my-secret --from-literal=username=myusername --from-literal=password=aSecurePassword
+```
+To use the `.yaml` files under the [infrastructure/kubernetes](infrastructure/kubernetes) as is, a secret called 
+`google-service-account-keys` is needed with the following secrets included:
+- DB_USERNAME
+- DB_PASSWORD
+- DB_HOST
+- DB_PORT
+- DB_NAME
+- BUCKET_PATH
+- GOOGLE_KEYS
 
 ## Useful commands: ##
+
+The `infrastructure\kubernetes` folder in the project contains several yaml files that allow to deploy various useful
+tools in the cluster, and example for deploying them is:
+```commandline
+kubectl apply -f infrastructure\kubernetes\update_files_sentinel.yaml
+```
 
 <!-- TODO: Add Useful commands -->
 
@@ -138,24 +167,3 @@ Project Links:
 * [Agencia Espacial Mexicana](https://www.gob.mx/aem)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-[contributors-shield]: https://img.shields.io/github/contributors/aubravo/gxiba.svg?style=for-the-badge
-[contributors-url]: https://github.com/aubravo/gxiba/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/aubravo/gxiba.svg?style=for-the-badge
-[forks-url]: https://github.com/aubravo/gxiba/network/members
-[stars-shield]: https://img.shields.io/github/stars/aubravo/gxiba.svg?style=for-the-badge
-[stars-url]: https://github.com/aubravo/gxiba/stargazers
-[issues-shield]: https://img.shields.io/github/issues/aubravo/gxiba.svg?style=for-the-badge
-[issues-url]: https://github.com/aubravo/gxiba/issues
-[Python.org]: https://img.shields.io/badge/Python3-4B8BBE?style=for-the-badge&logo=Python&logoColor=FFD43B
-[Python-url]: https://python.org 
-[Kubernetes.io]: https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white
-[Kubernetes-url]: https://kubernetes.io
-[Docker.com]: https://img.shields.io/badge/Docker-0db7ed?style=for-the-badge&logo=Docker&logoColor=white
-[Docker-url]: https://docker.com
-[cloud.google.com]: https://img.shields.io/badge/Google_Cloud-DB4437?style=for-the-badge&logo=GoogleCloud&logoColor=F4B400
-[cloud-url]: https://cloud.google.com
-[tensorflow.org]: https://img.shields.io/badge/TensorFlow-425066?style=for-the-badge&logo=TensorFlow&logoColor=FF6F00
-[tensorflow-url]: https://tensorflow.org
-[pandas.pydata.org]: https://img.shields.io/badge/Pandas-white?style=for-the-badge&logo=Pandas&logoColor=150458
-[pandas-url]: https://pandas.pydata.org/

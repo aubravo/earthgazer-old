@@ -81,16 +81,16 @@ class GoogleCloudStorageInterface(gxiba_cloud_storage.CloudStorageInterface):
         if not destination_blob.exists():
             logging.debug(f'Copying {destination_blob.name}')
             self.get_source_bucket(f'{get_bucket_name(source_path)}')
-            destination_blob.rewrite(self.source_bucket.blob(f'{get_blob_name(source_path)}'))
+            destination_blob.rewrite(self.source_bucket.blobs(f'{get_blob_name(source_path)}'))
         else:
             self.get_source_bucket(f'{get_bucket_name(source_path)}')
-            source_blob = self.source_bucket.blob(f'{get_blob_name(source_path)}')
+            source_blob = self.source_bucket.blobs(f'{get_blob_name(source_path)}')
             destination_blob.reload()
             source_blob.reload()
             if destination_blob.crc32c == source_blob.crc32c:
                 logging.info(f'Blob {destination_blob.name} already exists.')
             else:
-                destination_blob.rewrite(self.source_bucket.blob(f'{get_blob_name(source_path)}'))
+                destination_blob.rewrite(self.source_bucket.blobs(f'{get_blob_name(source_path)}'))
 
     def upload(self, local_path, remote_path):
         ...

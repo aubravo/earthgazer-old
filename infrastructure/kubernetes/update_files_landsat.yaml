@@ -6,8 +6,9 @@ spec:
   containers:
     - name: gxiba-update-files-landsat
       image: alvaroubravo/gxiba:main
+      imagePullPolicy: Always
       command: [ "python"]
-      args: ["./examples/update_files.py", "--verbose", "--db-kind", "postgresql", "--db-host", "$(DB_HOST)", "--db-username", "$(DB_USERNAME)", "--db-password", "$(DB_PASSWORD)", "--db-port", "$(DB_PORT)", "--db-name", "$(DB_NAME)", "--get-keys-from-env", "--skip-sentinel" ]
+      args: ["./examples/update_files.py", "--verbose", "--db-kind", "postgresql", "--db-host", "$(DB_HOST)", "--db-username", "$(DB_USERNAME)", "--db-password", "$(DB_PASSWORD)", "--db-port", "$(DB_PORT)", "--db-name", "$(DB_NAME)", "--bucket-path", "$(BUCKET_PATH)", "--get-keys-from-env", "--skip-sentinel" ]
       envFrom:
       - secretRef:
           name: google-service-account-keys

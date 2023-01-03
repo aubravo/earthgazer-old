@@ -111,37 +111,39 @@ if __name__ == "__main__":
             image_metadata.status = gxiba.ImageProcessingStatus.BigQueryImport.name
             db_interface.add(image_metadata)
 
-    # Get all not yet copied images
-    if cli_arguments.skip_sentinel and cli_arguments.skip_landsat:
-        gxiba_images = gxiba.database_get_from_point(
-            db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
-            status=gxiba.ImageProcessingStatus.BigQueryImport.name)
-    elif cli_arguments.skip_sentinel:
-        gxiba_images = gxiba.database_get_from_point(
-            db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
-            platform=gxiba.SatelliteImagePlatform.SENTINEL_2,
-            status=gxiba.ImageProcessingStatus.BigQueryImport.name)
-    elif cli_arguments.skip_landsat:
-        gxiba_images = gxiba.database_get_from_point(
-            db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
-            platform=gxiba.SatelliteImagePlatform.LANDSAT_8,
-            status=gxiba.ImageProcessingStatus.BigQueryImport.name)
-    else:
-        gxiba_images = []
+    if cli_arguments.bucket_path is not None:
+        # Get all not yet copied images
+        if cli_arguments.skip_sentinel and cli_arguments.skip_landsat:
+            gxiba_images = gxiba.database_get_from_point(
+                db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
+                status=gxiba.ImageProcessingStatus.BigQueryImport.name)
+        elif cli_arguments.skip_sentinel:
+            gxiba_images = gxiba.database_get_from_point(
+                db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
+                platform=gxiba.SatelliteImagePlatform.SENTINEL_2,
+                status=gxiba.ImageProcessingStatus.BigQueryImport.name)
+        elif cli_arguments.skip_landsat:
+            gxiba_images = gxiba.database_get_from_point(
+                db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
+                platform=gxiba.SatelliteImagePlatform.LANDSAT_8,
+                status=gxiba.ImageProcessingStatus.BigQueryImport.name)
+        else:
+            gxiba_images = []
 
-    # Copy all images to prepare for processing
-    for image_metadata in gxiba_images:
-        logging.info(f'STARTING download of {image_metadata.platform_id} images.')
-        y = gcs_client.list(image_metadata.base_url)
-        for name in y:
-            try:
-                if name[-4:] in ['.jp2'] and any(folder in name for folder in ['IMG_DATA']):
-                    gcs_client.copy(f'gs://{gcs_client.interface.source_bucket.name}/{name}',
-                                    f'gs://gxiba-storage/{image_metadata.platform_id}/{name.split("/")[-1]}')
-                elif name[-4:] in ['.TIF']:
-                    gcs_client.copy(f'gs://{gcs_client.interface.source_bucket.name}/{name}',
-                                    f'gs://gxiba-storage/{image_metadata.platform_id}/{name.split("/")[-1]}')
-            except Exception as e:
-                raise Exception(e)
-        image_metadata.status = gxiba.ImageProcessingStatus.ProjectStorage.name
-        image_metadata.update(db_interface)
+        # Copy all images to prepare for processing
+        for image_metadata in gxiba_images:
+            logging.info(f'STARTING download of {image_metadata.platform_id} images.')
+            blobs = gcs_client.list(image_metadata.base_url)
+            for name in blobs:
+                try:
+                    if name[-4:] in ['.jp2'] and any(folder in name for folder in ['IMG_DATA']):
+                        gcs_client.copy(f'gs://{gcs_client.interface.source_bucket.name}/{name}',
+                                        f'gs://{cli_arguments.bucket_path}/{image_metadata.platform_id}/{name.split("/")[-1]}')
+                    elif name[-4:] in ['.TIF']:
+                        gcs_client.copy(f'gs://{gcs_client.interface.source_bucket.name}/{name}',
+                                        f'gs://{cli_arguments.bucket_path}/{image_metadata.platform_id}/{name.split("/")[-1]}')
+                except Exception as e:
+                    raise Exception(e)
+            image_metadata.status = gxiba.ImageProcessingStatus.ProjectStorage.name
+            logging.info(f'{image_metadata.platform_id} status changed to {image_metadata.status}')
+            image_metadata.update(db_interface)
