@@ -3,14 +3,17 @@ import os
 from pathlib import Path
 
 
+logger = logging.getLogger(__name__)
+
+
 class LocalStorageManager:
     def __init__(self):
         self.user_home_path_ = os.path.expanduser("~")
         self.project_home_path_ = f'{os.path.expanduser("~")}/.gxiba/'
-        logging.debug(f'Attempting to create project path in {self.project_path}')
+        logger.debug(f'Attempting to create project path in {self.project_path}')
         project_path = Path(self.project_path)
         project_path.mkdir(parents=True, exist_ok=True)
-        logging.debug(f'Project path was created successfully or already exists.')
+        logger.debug(f'Project path was created successfully or already exists.')
 
     @property
     def user_home_path(self) -> str:

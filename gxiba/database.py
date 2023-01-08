@@ -8,7 +8,7 @@ from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session
 import gxiba.data_objects.image_metadata as gxiba_metadata
 
-
+logger = logging.getLogger(__name__)
 class DataBaseInterface:
     """DataBaseInterface
      Generate the required engine for interfacing with the project database.
@@ -20,9 +20,9 @@ class DataBaseInterface:
         if force_engine_generation and (database_kind not in self.supported_databases):
             raise Exception(f'Database {database_kind} not supported.')
         url = URL.create(database_kind, username=username, password=password, host=host, port=port, database=database)
-        logging.debug(f'Creating connection engine with {url}.')
+        logger.debug(f'Creating connection engine with {url}.')
         self._engine = create_engine(url, echo=echo, future=True)
-        logging.debug('Binding to database and creating defined objects.')
+        logger.debug('Binding to database and creating defined objects.')
         gxiba_metadata.mapper_registry.metadata.create_all(bind=self._engine, checkfirst=True)
         self._session = Session(self._engine)
 

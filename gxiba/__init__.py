@@ -8,5 +8,6 @@ from gxiba.image_processor import ImageProcessor
 from gxiba.interfaces.gcs_interface import GoogleCloudStorageInterface
 from gxiba.local_storage import LocalStorageManager
 
+
 if __name__ == "__main__":
     pass

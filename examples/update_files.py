@@ -7,10 +7,12 @@ from pathlib import Path
 
 try:
     import gxiba
+    from gxiba.logger import setup_logger
 except ModuleNotFoundError:
     root_path = Path(__file__).parents[1]
     sys.path.append(str(root_path))
     import gxiba
+    from gxiba.logger import setup_logger
 
 POPOCATEPETL_CRATER_LATITUDE = 19.023370
 POPOCATEPETL_CRATER_LONGITUDE = -98.622864
@@ -41,9 +43,11 @@ parser.add_argument('-B', '--bucket-path', help='Path to bucket.')
 
 if __name__ == "__main__":
     cli_arguments = parser.parse_args()
+    setup_logger()
+    logger = logging.getLogger()
+    logger.debug('Logger set up.')
 
     # Setup logger
-    logger = logging.getLogger()
     if cli_arguments.verbose:
         logger.setLevel(logging.DEBUG)
     else:
@@ -90,7 +94,7 @@ if __name__ == "__main__":
                                              longitude=POPOCATEPETL_CRATER_LONGITUDE,
                                              latitude=POPOCATEPETL_CRATER_LATITUDE,
                                              from_date=landsat_latest)):
-            logging.debug(f'Adding {image_metadata.platform_id} from LANDSAT to Database [{count + 1}/{total_rows}]')
+            logger.debug(f'Adding {image_metadata.platform_id} from LANDSAT to Database [{count + 1}/{total_rows}]')
             image_metadata.status = gxiba.ImageProcessingStatus.BigQueryImport.name
             db_interface.add(image_metadata)
 
@@ -107,7 +111,7 @@ if __name__ == "__main__":
                                              longitude=POPOCATEPETL_CRATER_LONGITUDE,
                                              latitude=POPOCATEPETL_CRATER_LATITUDE,
                                              from_date=sentinel_latest)):
-            logging.debug(f'Adding {image_metadata.platform_id} from SENTINEL to Database [{count+1}/{total_rows}]')
+            logger.debug(f'Adding {image_metadata.platform_id} from SENTINEL to Database [{count+1}/{total_rows}]')
             image_metadata.status = gxiba.ImageProcessingStatus.BigQueryImport.name
             db_interface.add(image_metadata)
 
@@ -132,7 +136,7 @@ if __name__ == "__main__":
 
         # Copy all images to prepare for processing
         for image_metadata in gxiba_images:
-            logging.info(f'STARTING download of {image_metadata.platform_id} images.')
+            logger.info(f'STARTING download of {image_metadata.platform_id} images.')
             blobs = gcs_client.list(image_metadata.base_url)
             for name in blobs:
                 try:
@@ -145,5 +149,5 @@ if __name__ == "__main__":
                 except Exception as e:
                     raise Exception(e)
             image_metadata.status = gxiba.ImageProcessingStatus.ProjectStorage.name
-            logging.info(f'{image_metadata.platform_id} status changed to {image_metadata.status}')
+            logger.info(f'{image_metadata.platform_id} status changed to {image_metadata.status}')
             image_metadata.update(db_interface)
