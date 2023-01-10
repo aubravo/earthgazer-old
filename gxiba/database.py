@@ -3,27 +3,33 @@ Include the project database management tools constructed with SQLAlchemy+datacl
 
 import logging
 from typing import List, Any
-from sqlalchemy import create_engine
+
+from sqlalchemy import create_engine, exc
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session
-import gxiba.data_objects.image_metadata as gxiba_metadata
+
+import gxiba.data_objects
 
 logger = logging.getLogger(__name__)
-class DataBaseInterface:
+
+
+class DataBaseEngine:
     """DataBaseInterface
      Generate the required engine for interfacing with the project database.
      Defaults to sqlite to allow for local testing."""
     supported_databases = ['sqlite', 'oracle', 'mssql', 'mysql', 'firebird', 'postgresql', 'sybase']
 
     def __init__(self, database_kind: str = 'sqlite', username: str = None, password: str = None, host: str = None,
-                 port: str = None, database: str = 'gxiba.db', echo=False, force_engine_generation=False):
+                 port: str = None, database: str = 'gxiba.db', echo=False, force_engine_generation=False,
+                 ignore_duplicates=True):
+        self.ignore_duplicates = ignore_duplicates
         if force_engine_generation and (database_kind not in self.supported_databases):
             raise Exception(f'Database {database_kind} not supported.')
         url = URL.create(database_kind, username=username, password=password, host=host, port=port, database=database)
         logger.debug(f'Creating connection engine with {url}.')
         self._engine = create_engine(url, echo=echo, future=True)
         logger.debug('Binding to database and creating defined objects.')
-        gxiba_metadata.mapper_registry.metadata.create_all(bind=self._engine, checkfirst=True)
+        gxiba.data_objects.mapper_registry.metadata.create_all(bind=self._engine, checkfirst=True)
         self._session = Session(self._engine)
 
     @property
@@ -46,6 +52,12 @@ class DataBaseInterface:
             try:
                 self.session.add(record)
                 self.session.commit()
+            except exc.IntegrityError as e:
+                if 'duplicate' in str(e) and self.ignore_duplicates:
+                    logger.error(f'Record {record} already in database.')
+                    self.session.rollback()
+                else:
+                    raise
             except Exception as e:
                 self.session.rollback()
                 raise Exception(f'Error while attempting to add {record} into database: {e}')

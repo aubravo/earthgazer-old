@@ -70,47 +70,47 @@ if __name__ == "__main__":
 
     # Setup required interfaces
     bq_interface = gxiba.BigQueryInterface(google_keys)
-    db_interface = gxiba.DataBaseInterface(database_kind=cli_arguments.db_kind,
-                                           username=cli_arguments.db_username,
-                                           password=cli_arguments.db_password,
-                                           host=cli_arguments.db_host,
-                                           port=cli_arguments.db_port,
-                                           database=cli_arguments.db_name,
-                                           echo=False,
-                                           force_engine_generation=cli_arguments.force_engine)
+    db_interface = gxiba.DataBaseEngine(database_kind=cli_arguments.db_kind,
+                                        username=cli_arguments.db_username,
+                                        password=cli_arguments.db_password,
+                                        host=cli_arguments.db_host,
+                                        port=cli_arguments.db_port,
+                                        database=cli_arguments.db_name,
+                                        echo=False,
+                                        force_engine_generation=cli_arguments.force_engine)
     gcs_client = gxiba.CloudStorageManager(gxiba.GoogleCloudStorageInterface, google_keys)
 
     # Get latest images in project database
     if cli_arguments.skip_landsat:
         try:
-            landsat_latest = gxiba.database_get_latest_by_platform(gxiba.SatelliteImagePlatform.LANDSAT_8.name,
-                                                                   engine=db_interface).sensing_time
+            landsat_latest = gxiba.database_get_gxiba_image_metadata_latest_by_platform(gxiba.SatelliteImagePlatform.LANDSAT_8.name,
+                                                                                        engine=db_interface).sensing_time
         except AttributeError:
             landsat_latest = datetime.datetime.min
 
         for count, (image_metadata, total_rows) in enumerate(
-                gxiba.big_query_get_by_point(bq_interface, db_interface,
-                                             platform=gxiba.SatelliteImagePlatform.LANDSAT_8,
-                                             longitude=POPOCATEPETL_CRATER_LONGITUDE,
-                                             latitude=POPOCATEPETL_CRATER_LATITUDE,
-                                             from_date=landsat_latest)):
+                gxiba.create_gxiba_image_metadata_from_big_query(bq_interface, db_interface,
+                                                                 platform=gxiba.SatelliteImagePlatform.LANDSAT_8,
+                                                                 longitude=POPOCATEPETL_CRATER_LONGITUDE,
+                                                                 latitude=POPOCATEPETL_CRATER_LATITUDE,
+                                                                 from_date=landsat_latest)):
             logger.debug(f'Adding {image_metadata.platform_id} from LANDSAT to Database [{count + 1}/{total_rows}]')
             image_metadata.status = gxiba.ImageProcessingStatus.BigQueryImport.name
             db_interface.add(image_metadata)
 
     if cli_arguments.skip_sentinel:
         try:
-            sentinel_latest = gxiba.database_get_latest_by_platform(gxiba.SatelliteImagePlatform.SENTINEL_2.name,
-                                                                    engine=db_interface).sensing_time
+            sentinel_latest = gxiba.database_get_gxiba_image_metadata_latest_by_platform(gxiba.SatelliteImagePlatform.SENTINEL_2.name,
+                                                                                         engine=db_interface).sensing_time
         except AttributeError:
             sentinel_latest = datetime.datetime.min
 
         for count, (image_metadata, total_rows) in enumerate(
-                gxiba.big_query_get_by_point(bq_interface, db_interface,
-                                             platform=gxiba.SatelliteImagePlatform.SENTINEL_2,
-                                             longitude=POPOCATEPETL_CRATER_LONGITUDE,
-                                             latitude=POPOCATEPETL_CRATER_LATITUDE,
-                                             from_date=sentinel_latest)):
+                gxiba.create_gxiba_image_metadata_from_big_query(bq_interface, db_interface,
+                                                                 platform=gxiba.SatelliteImagePlatform.SENTINEL_2,
+                                                                 longitude=POPOCATEPETL_CRATER_LONGITUDE,
+                                                                 latitude=POPOCATEPETL_CRATER_LATITUDE,
+                                                                 from_date=sentinel_latest)):
             logger.debug(f'Adding {image_metadata.platform_id} from SENTINEL to Database [{count+1}/{total_rows}]')
             image_metadata.status = gxiba.ImageProcessingStatus.BigQueryImport.name
             db_interface.add(image_metadata)
@@ -118,16 +118,16 @@ if __name__ == "__main__":
     if cli_arguments.bucket_path is not None:
         # Get all not yet copied images
         if cli_arguments.skip_sentinel and cli_arguments.skip_landsat:
-            gxiba_images = gxiba.database_get_from_point(
+            gxiba_images = gxiba.database_get_gxiba_image_metadata_from_point(
                 db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
                 status=gxiba.ImageProcessingStatus.BigQueryImport.name)
         elif cli_arguments.skip_sentinel:
-            gxiba_images = gxiba.database_get_from_point(
+            gxiba_images = gxiba.database_get_gxiba_image_metadata_from_point(
                 db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
                 platform=gxiba.SatelliteImagePlatform.SENTINEL_2,
                 status=gxiba.ImageProcessingStatus.BigQueryImport.name)
         elif cli_arguments.skip_landsat:
-            gxiba_images = gxiba.database_get_from_point(
+            gxiba_images = gxiba.database_get_gxiba_image_metadata_from_point(
                 db_interface, POPOCATEPETL_CRATER_LATITUDE, POPOCATEPETL_CRATER_LONGITUDE,
                 platform=gxiba.SatelliteImagePlatform.LANDSAT_8,
                 status=gxiba.ImageProcessingStatus.BigQueryImport.name)

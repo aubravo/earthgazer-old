@@ -72,7 +72,7 @@ class SatelliteImagePlatform(Enum):
 class ImageProcessingStatus(Enum):
     BigQueryImport = 1
     ProjectStorage = 2
-    ImageProcessed = 3
+    BandMetadataProcessed = 3
 
     def __eq__(self, other):
         if isinstance(other, str):
