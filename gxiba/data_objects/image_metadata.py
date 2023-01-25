@@ -5,7 +5,7 @@ from typing import Iterable
 
 from sqlalchemy import Column, Text, DateTime, Numeric, update
 
-import gxiba.bigquery as gxiba_bigquery
+import gxiba.data_sources.bigquery as gxiba_bigquery
 import gxiba.data_objects.definitions as definitions
 from gxiba.data_objects import mapper_registry
 
@@ -78,26 +78,40 @@ def database_get_gxiba_image_metadata(engine,
                                       longitude: float = None,
                                       from_date: datetime = None,
                                       to_date: datetime = None,
-                                      status: str = None) -> Iterable[GxibaImageMetadata]:
+                                      status: definitions.ImageProcessingStatus | str = None) -> Iterable[GxibaImageMetadata]:
+    logger.debug('Attempting to retrieve image metadata from database')
     if isinstance(platform, definitions.SatelliteImagePlatform):
         platform = platform.value
     elif not isinstance(platform, str):
         raise NotImplementedError(f'Expected str or gxiba.SatelliteImagePlatform, got {type(platform)} instead.')
 
+    if status:
+        if isinstance(status, definitions.ImageProcessingStatus):
+            status = status.name
+        elif not isinstance(status, str):
+            raise NotImplementedError(f'Expected str or gxiba.SatelliteImagePlatform, got {type(platform)} instead.')
+
     query_result = engine.session.query(GxibaImageMetadata).filter(GxibaImageMetadata.platform.like(f'%{platform}%'))
+    # logging.debug(f'{query_result.count()} records found after filtering by platform.')
     if latitude is not None:
         query_result = query_result.filter(GxibaImageMetadata.latitude_north >= latitude,
                                            GxibaImageMetadata.latitude_south <= latitude)
+    # logging.debug(f'{query_result.count()} records found after filtering by latitude.')
     if longitude is not None:
         query_result = query_result.filter(GxibaImageMetadata.longitude_east >= longitude,
                                            GxibaImageMetadata.longitude_west <= longitude)
+    # logging.debug(f'{query_result.count()} records found after filtering by longitude.')
     if status is not None:
         query_result = query_result.filter(GxibaImageMetadata.status.like(f'%{status}%'))
+    # logging.debug(f'{query_result.count()} records found after filtering by status.')
     if from_date is not None:
         query_result = query_result.filter(GxibaImageMetadata.sensing_time >= from_date)
+    # logging.debug(f'{query_result.count()} records found after filtering by from date.')
     if to_date is not None:
         query_result = query_result.filter(GxibaImageMetadata.sensing_time <= to_date)
+    # logging.debug(f'{query_result.count()} records found after filtering by to date.')
     query_result = query_result.order_by(GxibaImageMetadata.sensing_time.asc())
+    logger.debug(f'{query_result.count()} records found.')
     for row in query_result:
         yield row
 

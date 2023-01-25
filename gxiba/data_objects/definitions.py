@@ -85,3 +85,11 @@ class ImageProcessingStatus(Enum):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class LandsatInterestBands(Enum):
+    blue = 2
+    green = 3
+    red = 4
+    swir1 = 6
+    swir2 = 7

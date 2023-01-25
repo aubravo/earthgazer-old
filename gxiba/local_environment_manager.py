@@ -2,11 +2,10 @@ import logging
 import os
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 
-class LocalStorageManager:
+class LocalEnvironmentManager:
     def __init__(self):
         self.user_home_path_ = os.path.expanduser("~")
         self.project_home_path_ = f'{os.path.expanduser("~")}/.gxiba/'

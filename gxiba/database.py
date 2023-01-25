@@ -19,13 +19,13 @@ class DataBaseEngine:
      Defaults to sqlite to allow for local testing."""
     supported_databases = ['sqlite', 'oracle', 'mssql', 'mysql', 'firebird', 'postgresql', 'sybase']
 
-    def __init__(self, database_kind: str = 'sqlite', username: str = None, password: str = None, host: str = None,
+    def __init__(self, kind: str = 'sqlite', username: str = None, password: str = None, host: str = None,
                  port: str = None, database: str = 'gxiba.db', echo=False, force_engine_generation=False,
-                 ignore_duplicates=True):
+                 ignore_duplicates=True, *args, **kwargs):
         self.ignore_duplicates = ignore_duplicates
-        if force_engine_generation and (database_kind not in self.supported_databases):
-            raise Exception(f'Database {database_kind} not supported.')
-        url = URL.create(database_kind, username=username, password=password, host=host, port=port, database=database)
+        if force_engine_generation and (kind not in self.supported_databases):
+            raise Exception(f'Database {kind} not supported.')
+        url = URL.create(kind, username=username, password=password, host=host, port=port, database=database)
         logger.debug(f'Creating connection engine with {url}.')
         self._engine = create_engine(url, echo=echo, future=True)
         logger.debug('Binding to database and creating defined objects.')

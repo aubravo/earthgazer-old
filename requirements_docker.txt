@@ -9,5 +9,3 @@ Pillow
 psycopg2-binary
 PyYAML
 SQLAlchemy
-# tensorflow
-# numpy
