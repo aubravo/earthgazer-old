@@ -5,9 +5,11 @@ import logging
 import sys
 from pathlib import Path
 
+import gxiba.environment
+
 try:
     import gxiba
-    from gxiba.logger import setup_logger
+    from gxiba.environment import setup_logger
 except ModuleNotFoundError:
     root_path = Path(__file__).parents[1]
     sys.path.append(str(root_path))
@@ -66,7 +68,7 @@ if __name__ == "__main__":
         logger.setLevel(logging.INFO)
 
     # Setup local storage
-    local_storage = gxiba.LocalEnvironmentManager()
+    local_storage = gxiba.project_environment.LocalEnvironmentManager()
 
     # Get keys
     if cli_arguments.get_keys_from_env:
@@ -74,7 +76,7 @@ if __name__ == "__main__":
 
         google_keys = json.loads(os.getenv('GOOGLE_KEYS'))
     else:
-        with open(f'{local_storage.project_path}keys.json') as keys:
+        with open(f'{local_storage.project_home_path}keys.json') as keys:
             google_keys = json.loads(keys.read())
 
     if cli_arguments.db_kind == 'sqlite':
@@ -82,15 +84,8 @@ if __name__ == "__main__":
 
     # Setup required interfaces
     bq_interface = gxiba.BigQueryInterface(google_keys)
-    db_interface = gxiba.DataBaseEngine(kind=cli_arguments.db_kind,
-                                        username=cli_arguments.db_username,
-                                        password=cli_arguments.db_password,
-                                        host=cli_arguments.db_host,
-                                        port=cli_arguments.db_port,
-                                        database=cli_arguments.db_name,
-                                        echo=False,
-                                        force_engine_generation=cli_arguments.force_engine)
-    gcs_manager = gxiba.CloudStorageManager(gxiba.GoogleCloudStorageInterface, google_keys)
+    db_interface = gxiba.project_environment.DataBaseEngine()
+    gcs_manager = gxiba.CloudStorageInterface(gxiba.GoogleAbstractCloudStorageDriver, google_keys)
 
     # Get latest images in project database
     if not cli_arguments.skip_landsat:

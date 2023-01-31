@@ -8,9 +8,11 @@ import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 
+import gxiba.environment
+
 try:
     import gxiba
-    from gxiba.logger import setup_logger
+    from gxiba.environment import setup_logger
 except ModuleNotFoundError:
     from pathlib import Path
     import sys
@@ -47,11 +49,11 @@ if __name__ == '__main__':
     database_keys = {key.replace('db_', ''): database_keys[key] for key in database_keys if 'db_' in key}
 
     # Set up resource managers
-    local_storage = gxiba.LocalEnvironmentManager()
-    with open(f'{local_storage.project_path}keys.json') as keys:
+    local_storage = gxiba.project_environment.LocalEnvironmentManager()
+    with open(f'{local_storage.project_home_path}keys.json') as keys:
         google_keys = json.loads(keys.read())
-    db_engine = gxiba.DataBaseEngine(**database_keys)
-    cloud_storage = gxiba.CloudStorageManager(gxiba.GoogleCloudStorageInterface, google_keys)
+    db_engine = gxiba.project_environment.DataBaseEngine(**database_keys)
+    cloud_storage = gxiba.CloudStorageInterface(gxiba.GoogleAbstractCloudStorageDriver, google_keys)
 
     landsat_image = gxiba.LandsatImage()
 
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     for capture in gxiba.database_get_gxiba_image_metadata(db_engine, gxiba.SatelliteImagePlatform.LANDSAT_8,
                                                            status=gxiba.ImageProcessingStatus.BandMetadataProcessed):
         # Create local platform save path
-        local_path = pathlib.Path(f'{local_storage.project_path}/tmp/{capture.platform_id}/')
+        local_path = pathlib.Path(f'{local_storage.project_home_path}/tmp/{capture.platform_id}/')
         local_path.mkdir(exist_ok=True, parents=True)
 
         # Download and prepare bands images

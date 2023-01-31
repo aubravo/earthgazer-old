@@ -1,63 +1,116 @@
-"""Database Interface.
-Include the project database management tools constructed with SQLAlchemy+dataclasses for ease of data management."""
-
 import logging
-from typing import List, Any
+from dataclasses import dataclass, field, asdict
+from datetime import datetime
 
-from sqlalchemy import create_engine, exc
-from sqlalchemy.engine import URL, Engine
-from sqlalchemy.orm import Session
+from sqlalchemy import Column, Text, Numeric, DateTime, asc, desc, Integer
 
-import gxiba.data_objects
+from gxiba.environment import MAPPER_REGISTRY, GXIBA_DATABASE_ENGINE, GXIBA_DATABASE_SESSION, GXIBA_DATABASE_SCHEMA
 
 logger = logging.getLogger(__name__)
 
+logger.debug('Starting database objects creation')
 
-class DataBaseEngine:
-    """DataBaseInterface
-     Generate the required engine for interfacing with the project database.
-     Defaults to sqlite to allow for local testing."""
-    supported_databases = ['sqlite', 'oracle', 'mssql', 'mysql', 'firebird', 'postgresql', 'sybase']
 
-    def __init__(self, kind: str = 'sqlite', username: str = None, password: str = None, host: str = None,
-                 port: str = None, database: str = 'gxiba.db', echo=False, force_engine_generation=False,
-                 ignore_duplicates=True, *args, **kwargs):
-        self.ignore_duplicates = ignore_duplicates
-        if force_engine_generation and (kind not in self.supported_databases):
-            raise Exception(f'Database {kind} not supported.')
-        url = URL.create(kind, username=username, password=password, host=host, port=port, database=database)
-        logger.debug(f'Creating connection engine with {url}.')
-        self._engine = create_engine(url, echo=echo, future=True)
-        logger.debug('Binding to database and creating defined objects.')
-        gxiba.data_objects.mapper_registry.metadata.create_all(bind=self._engine, checkfirst=True)
-        self._session = Session(self._engine)
+class GxibaDataBaseObject:
 
-    @property
-    def session(self) -> Session:
-        return self._session
+    _in_database: bool
+    create_timestamp: datetime
+    last_update_timestamp: datetime
 
-    @property
-    def engine(self) -> Engine:
-        return self._engine
-
-    def add(self, record: Any):
-        if isinstance(record, List):
-            try:
-                self.session.add_all(record)
-                self.session.commit()
-            except Exception as e:
-                self.session.rollback()
-                raise Exception(f'Error while attempting to add {record} into database: {e}')
+    def update(self):
+        if not self._in_database:
+            self.create_timestamp = datetime.now()
+            self.last_update_timestamp = datetime.now()
+            GXIBA_DATABASE_SESSION.add(self)
+            GXIBA_DATABASE_SESSION.commit()
+            self._in_database = True
         else:
-            try:
-                self.session.add(record)
-                self.session.commit()
-            except exc.IntegrityError as e:
-                if 'duplicate' in str(e) and self.ignore_duplicates:
-                    logger.error(f'Record {record} already in database.')
-                    self.session.rollback()
-                else:
-                    raise
-            except Exception as e:
-                self.session.rollback()
-                raise Exception(f'Error while attempting to add {record} into database: {e}')
+            self.last_update_timestamp = datetime.now()
+            GXIBA_DATABASE_SESSION.commit()
+
+    def drop(self):
+        GXIBA_DATABASE_SESSION.delete(self)
+
+    @property
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+logger.debug('...Passing BandMetadata object to MAPPER_REGISTRY')
+
+
+@MAPPER_REGISTRY.mapped
+@dataclass
+class BandMetadata(GxibaDataBaseObject):
+    __tablename__ = "band_metadata"
+    if 'sqlite' not in GXIBA_DATABASE_ENGINE.name.lower():
+        __table_args__ = {"schema": GXIBA_DATABASE_SCHEMA}
+    __sa_dataclass_metadata_key__ = "sa"
+
+    platform_id: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    band: int = field(metadata={"sa": Column(Integer, primary_key=True)})
+    metadata_field_name: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    metadata_field_value: str = field(metadata={"sa": Column(Text)})
+    metadata_field_type: str = field(default='', metadata={"sa": Column(Text)})
+    status: str = field(default='', metadata={"sa": Column(Text)})
+    create_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
+    last_update_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
+    _in_database: bool = False
+
+    def __post_init__(self):
+        self._in_database = False
+
+
+logger.debug('...Passing ImageMetadata object to MAPPER_REGISTRY')
+
+
+@ MAPPER_REGISTRY.mapped
+@ dataclass
+class ImageMetadata(GxibaDataBaseObject):
+    __tablename__ = "image_metadata"
+    if 'sqlite' not in GXIBA_DATABASE_ENGINE.name.lower():
+        __table_args__ = {"schema": GXIBA_DATABASE_SCHEMA}
+    __sa_dataclass_metadata_key__ = "sa"
+
+    platform_id: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    platform: str = field(metadata={"sa": Column(Text)})
+    sensing_time: datetime = field(metadata={"sa": Column(DateTime)})
+    latitude_north: float = field(metadata={"sa": Column(Numeric)})
+    latitude_south: float = field(metadata={"sa": Column(Numeric)})
+    longitude_west: float = field(metadata={"sa": Column(Numeric)})
+    longitude_east: float = field(metadata={"sa": Column(Numeric)})
+    base_url: str = field(metadata={"sa": Column(Text)})
+    status: str = field(metadata={"sa": Column(Text)})
+    usage: str = field(default='', metadata={"sa": Column(Text)})
+    create_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
+    last_update_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
+    _in_database: bool = False
+
+    def __post_init__(self):
+        self._in_database = False
+
+
+logger.debug('...Attempting to create all objects associated with MAPPER_REGISTRY')
+MAPPER_REGISTRY.metadata.create_all(bind=GXIBA_DATABASE_ENGINE, checkfirst=True)
+
+
+# =====================================================
+# ================Interaction Methods==================
+# =====================================================
+
+def database_query(database_object, query_filters=None, order_by_parameter=None, order='asc'):
+    if query_filters is None:
+        query_filters = []
+    query = GXIBA_DATABASE_SESSION.query(database_object)
+    for query_filter in query_filters:
+        query = query.filter(query_filter)
+    if order_by_parameter:
+        if order.lower() == 'asc':
+            query = query.order_by(asc(order_by_parameter))
+        elif order.lower() == 'desc':
+            query = query.order_by(desc(order_by_parameter))
+        else:
+            raise NotImplementedError
+    for result in query:
+        result._in_database = True
+        yield result

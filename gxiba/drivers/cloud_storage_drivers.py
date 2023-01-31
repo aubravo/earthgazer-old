@@ -23,7 +23,7 @@ def get_blob_name(path):
     return re_match[2]
 
 
-class GoogleCloudStorageInterface(gxiba_cloud_storage.CloudStorageInterface):
+class GCSDriver(gxiba_cloud_storage.AbstractCloudStorageDriver):
 
     def __init__(self, credentials):
         self._source_bucket = None

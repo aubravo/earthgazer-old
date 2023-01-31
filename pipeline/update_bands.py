@@ -2,9 +2,11 @@ import argparse
 import json
 import logging
 
+import gxiba.environment
+
 try:
     import gxiba
-    from gxiba.logger import setup_logger
+    from gxiba.environment import setup_logger
 except ModuleNotFoundError:
     from pathlib import Path
     import sys
@@ -35,18 +37,18 @@ if __name__ == '__main__':
     setup_logger()
     logger = logging.getLogger(__name__)
     logger.debug('Logger set up.')
-    local_storage = gxiba.LocalEnvironmentManager()
-    with open(f'{local_storage.project_path}keys.json') as keys:
+    local_storage = gxiba.project_environment.LocalEnvironmentManager()
+    with open(f'{local_storage.project_home_path}keys.json') as keys:
         google_keys = json.loads(keys.read())
-    db_engine = gxiba.DataBaseEngine(kind=cli_arguments.db_kind,
-                                     username=cli_arguments.db_username,
-                                     password=cli_arguments.db_password,
-                                     host=cli_arguments.db_host,
-                                     port=cli_arguments.db_port,
-                                     database=cli_arguments.db_name,
-                                     echo=False,
-                                     force_engine_generation=cli_arguments.force_engine)
-    cloud_storage = gxiba.CloudStorageManager(gxiba.GoogleCloudStorageInterface, google_keys)
+    db_engine = gxiba.project_environment.DataBaseEngine(kind=cli_arguments.db_kind,
+                                                         username=cli_arguments.db_username,
+                                                         password=cli_arguments.db_password,
+                                                         host=cli_arguments.db_host,
+                                                         port=cli_arguments.db_port,
+                                                         database=cli_arguments.db_name,
+                                                         echo=False,
+                                                         force_engine_generation=cli_arguments.force_engine)
+    cloud_storage = gxiba.CloudStorageInterface(gxiba.GoogleAbstractCloudStorageDriver, google_keys)
     if cli_arguments.platform_id is not None:
         logger.debug(f'Processing for only {cli_arguments.platform_id}')
         gxiba.process_band_metadata(gxiba.database_get_gxiba_image_metadata_from_platform_id(cli_arguments.platform_id, engine=db_engine))

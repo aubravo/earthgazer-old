@@ -2,11 +2,11 @@ from abc import abstractmethod
 from typing import Callable, Protocol
 
 
-class CloudStorageManager:
-    def __init__(self, cloud_storage_interface: Callable, credentials: dict = None):
+class CloudStorageInterface:
+    def __init__(self, driver: Callable, credentials: dict = None):
         if credentials is None:
             credentials = {}
-        self._cloud_storage_interface = cloud_storage_interface(credentials)
+        self._cloud_storage_interface = driver(credentials)
 
     @property
     def interface(self):
@@ -25,7 +25,7 @@ class CloudStorageManager:
         yield from self._cloud_storage_interface.list(remote_path)
 
 
-class CloudStorageInterface(Protocol):
+class AbstractCloudStorageDriver(Protocol):
     """Cloud Storage Interface.
 
     Template class for Cloud Storage Interfaces. See `gxiba.interfaces` for implementations."""

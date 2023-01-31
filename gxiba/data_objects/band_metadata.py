@@ -1,13 +1,11 @@
 import logging
 import re
-from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Iterable
 
-from sqlalchemy import Column, Text, DateTime, Numeric, update, cast, func, DATE
+from sqlalchemy import DateTime, cast, func, DATE
 
-from gxiba.data_objects import mapper_registry
-from gxiba.data_objects.image_metadata import GxibaImageMetadata
+from gxiba import BandMetadata, ImageMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -36,53 +34,6 @@ def __name_parser(file_name) -> dict | None:
         return None
 
 
-@mapper_registry.mapped
-@dataclass
-class LandsatBandMetadata:
-    __tablename__ = "landsat_band_metadata"
-    __table_args__ = {"schema": "gxiba"}
-    __sa_dataclass_metadata_key__ = "sa"
-
-    sensor: str = field(metadata={"sa": Column(Text)})
-    satellite: int = field(metadata={"sa": Column(Numeric)})
-    level: str = field(metadata={"sa": Column(Text)})
-    wrs_path: int = field(metadata={"sa": Column(Numeric)})
-    wrs_row: int = field(metadata={"sa": Column(Numeric)})
-    acquisition_year: int = field(metadata={"sa": Column(Numeric)})
-    acquisition_month: int = field(metadata={"sa": Column(Numeric)})
-    acquisition_day: int = field(metadata={"sa": Column(Numeric)})
-    processing_year: int = field(metadata={"sa": Column(Numeric)})
-    processing_month: int = field(metadata={"sa": Column(Numeric)})
-    processing_day: int = field(metadata={"sa": Column(Numeric)})
-    collection_number: int = field(metadata={"sa": Column(Numeric)})
-    collection_category: str = field(metadata={"sa": Column(Text)})
-    band: int = field(metadata={"sa": Column(Numeric, primary_key=True)})
-    project_location_url: str = field(metadata={"sa": Column(Text)})
-    platform_id: str = field(metadata={"sa": Column(Text, primary_key=True)})
-    status: str = field(default='', metadata={"sa": Column(Text)})
-    create_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
-    last_update_timestamp: datetime = field(default_factory=datetime.now, metadata={"sa": Column(DateTime)})
-
-    @property
-    def as_dict(self) -> dict:
-        return asdict(self)
-
-    @property
-    def processing_date(self) -> datetime:
-        return datetime.fromisoformat(f'{self.processing_year}-{self.processing_month}-{self.processing_day}')
-
-    @property
-    def acquisition_date(self) -> datetime:
-        return datetime.fromisoformat(f'{self.acquisition_year}-{self.acquisition_month}-{self.acquisition_day}')
-
-    def update(self, engine):
-        self.last_update_timestamp = datetime.now()
-        engine.session.execute(update(LandsatBandMetadata).where(
-            LandsatBandMetadata.platform_id == self.platform_id and LandsatBandMetadata.band == self.band),
-            [self.as_dict])
-        engine.session.commit()
-
-
 def database_get_landsat_band_metadata(engine, sensor: str = None, satellite: int = None, level: str = None,
                                        wrs_path: int = None, wrs_row: int = None, collection_number: int = None,
                                        collection_category: str = None, band: int = None,
@@ -90,93 +41,93 @@ def database_get_landsat_band_metadata(engine, sensor: str = None, satellite: in
                                        acquisition_from_date: datetime = None, acquisition_to_date: datetime = None,
                                        processing_from_date: datetime = None, processing_to_date: datetime = None,
                                        order_by_asc: bool = True):
-    query_result = engine.session.query(LandsatBandMetadata)
+    query_result = engine.session.query(BandMetadata)
     if sensor:
-        query_result = query_result.filter(LandsatBandMetadata.sensor.like(f'%{sensor}%'))
+        query_result = query_result.filter(BandMetadata.sensor.like(f'%{sensor}%'))
     # logger.debug(f'{query_result.count()} records found.')
     if satellite:
-        query_result = query_result.filter(LandsatBandMetadata.satellite == satellite)
+        query_result = query_result.filter(BandMetadata.satellite == satellite)
     # logger.debug(f'{query_result.count()} records found.')
     if level:
-        query_result = query_result.filter(LandsatBandMetadata.level.like(f'%{level}%'))
+        query_result = query_result.filter(BandMetadata.level.like(f'%{level}%'))
     # logger.debug(f'{query_result.count()} records found.')
     if wrs_path:
-        query_result = query_result.filter(LandsatBandMetadata.wrs_path == wrs_path)
+        query_result = query_result.filter(BandMetadata.wrs_path == wrs_path)
     # logger.debug(f'{query_result.count()} records found.')
     if wrs_row:
-        query_result = query_result.filter(LandsatBandMetadata.wrs_row == wrs_row)
+        query_result = query_result.filter(BandMetadata.wrs_row == wrs_row)
     # logger.debug(f'{query_result.count()} records found.')
     if collection_number:
-        query_result = query_result.filter(LandsatBandMetadata.collection_number == collection_number)
+        query_result = query_result.filter(BandMetadata.collection_number == collection_number)
     # logger.debug(f'{query_result.count()} records found.')
     if collection_category:
-        query_result = query_result.filter(LandsatBandMetadata.collection_category.like(f'%{collection_category}%'))
+        query_result = query_result.filter(BandMetadata.collection_category.like(f'%{collection_category}%'))
     # logger.debug(f'{query_result.count()} records found.')
     if band:
-        query_result = query_result.filter(LandsatBandMetadata.band == band)
+        query_result = query_result.filter(BandMetadata.band == band)
     # logger.debug(f'{query_result.count()} records found.')
     if platform_id:
-        query_result = query_result.filter(LandsatBandMetadata.platform_id.like(f'%{platform_id}%'))
+        query_result = query_result.filter(BandMetadata.platform_id.like(f'%{platform_id}%'))
     # logger.debug(f'{query_result.count()} records found.')
     if status:
-        query_result = query_result.filter(LandsatBandMetadata.status.like(f'%{status}%'))
+        query_result = query_result.filter(BandMetadata.status.like(f'%{status}%'))
     # logger.debug(f'{query_result.count()} records found.')
     if acquisition_from_date:
         query_result = query_result.filter(cast(
-            func.concat(LandsatBandMetadata.acquisition_year, '-', LandsatBandMetadata.acquisition_month, '-',
-                        LandsatBandMetadata.acquisition_day), DATE) >= acquisition_from_date.strftime('%Y-%m-%d'))
+            func.concat(BandMetadata.acquisition_year, '-', BandMetadata.acquisition_month, '-',
+                        BandMetadata.acquisition_day), DATE) >= acquisition_from_date.strftime('%Y-%m-%d'))
     # logger.debug(f'{query_result.count()} records found.')
     if acquisition_to_date:
         query_result = query_result.filter(cast(
-            func.concat(LandsatBandMetadata.acquisition_year, '-', LandsatBandMetadata.acquisition_month, '-',
-                        LandsatBandMetadata.acquisition_day), DATE) <= acquisition_to_date.strftime('%Y-%m-%d'))
+            func.concat(BandMetadata.acquisition_year, '-', BandMetadata.acquisition_month, '-',
+                        BandMetadata.acquisition_day), DATE) <= acquisition_to_date.strftime('%Y-%m-%d'))
     # logger.debug(f'{query_result.count()} records found.')
     if processing_from_date:
         query_result = query_result.filter(cast(
-            func.concat(LandsatBandMetadata.processing_year, '-', LandsatBandMetadata.processing_month, '-',
-                        LandsatBandMetadata.processing_day), DATE) >= processing_from_date.strftime('%Y-%m-%d'))
+            func.concat(BandMetadata.processing_year, '-', BandMetadata.processing_month, '-',
+                        BandMetadata.processing_day), DATE) >= processing_from_date.strftime('%Y-%m-%d'))
     # logger.debug(f'{query_result.count()} records found.')
     if processing_to_date:
         query_result = query_result.filter(cast(
-            func.concat(LandsatBandMetadata.processing_year, '-', LandsatBandMetadata.processing_month, '-',
-                        LandsatBandMetadata.processing_day), DATE) <= processing_to_date.strftime('%Y-%m-%d'))
+            func.concat(BandMetadata.processing_year, '-', BandMetadata.processing_month, '-',
+                        BandMetadata.processing_day), DATE) <= processing_to_date.strftime('%Y-%m-%d'))
     # logger.debug(f'{query_result.count()} records found.')
     if order_by_asc:
-        query_result.order_by(cast(LandsatBandMetadata.acquisition_date, DateTime).asc())
+        query_result.order_by(cast(BandMetadata.acquisition_date, DateTime).asc())
     logger.debug(f'{query_result.count()} records found.')
     for result in query_result:
         yield result
 
 
-def database_get_landsat_band_metadata_by_platform_id(engine, platform_id: str | GxibaImageMetadata,
-                                                      band: int = None) -> Iterable[LandsatBandMetadata]:
-    if isinstance(platform_id, GxibaImageMetadata):
+def database_get_landsat_band_metadata_by_platform_id(engine, platform_id: str | ImageMetadata,
+                                                      band: int = None) -> Iterable[BandMetadata]:
+    if isinstance(platform_id, ImageMetadata):
         platform_id = platform_id.platform_id
     elif not isinstance(platform_id, str):
         raise NotImplementedError(f'Expected str or gxiba.GxibaImageMetadata, got {type(platform_id)} instead.')
 
-    query_result = engine.session.query(LandsatBandMetadata). \
-        filter(LandsatBandMetadata.platform_id.like(f'%{platform_id}%'))
+    query_result = engine.session.query(BandMetadata). \
+        filter(BandMetadata.platform_id.like(f'%{platform_id}%'))
     if band:
-        query_result = query_result.filter(LandsatBandMetadata.band == band)
+        query_result = query_result.filter(BandMetadata.band == band)
     for result in query_result:
         yield result
 
 
 def create_landsat_band_metadata_from_file_name(file_name, platform_id: str,
-                                                platform_url: str) -> LandsatBandMetadata | None:
+                                                platform_url: str) -> BandMetadata | None:
     try:
         params = __name_parser(file_name)
     except AttributeError:
         return None
     if params is not None:
         params.update({'project_location_url': platform_url, 'platform_id': platform_id})
-        return LandsatBandMetadata(**params)
+        return BandMetadata(**params)
     else:
         return None
 
 
-def process_band_metadata(gxiba_image_metadata: GxibaImageMetadata, database_interface, cloud_storage_manager,
+def process_band_metadata(gxiba_image_metadata: ImageMetadata, database_interface, cloud_storage_manager,
                           bucket_path):
     if 'SENTINEL' in gxiba_image_metadata.platform:
         logger.debug('SENTINEL IMAGE')
