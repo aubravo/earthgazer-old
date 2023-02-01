@@ -1,31 +1,8 @@
 from abc import abstractmethod
-from typing import Callable, Protocol
+from typing import Protocol
 
 
-class CloudStorageManager:
-    def __init__(self, cloud_storage_interface: Callable, credentials: dict = None):
-        if credentials is None:
-            credentials = {}
-        self._cloud_storage_interface = cloud_storage_interface(credentials)
-
-    @property
-    def interface(self):
-        return self._cloud_storage_interface
-
-    def download(self, remote_path, local_path):
-        self._cloud_storage_interface.download(remote_path, local_path)
-
-    def upload(self, local_path, remote_path):
-        self._cloud_storage_interface.upload(local_path, remote_path)
-
-    def copy(self, source_path, destination_path):
-        self._cloud_storage_interface.copy(source_path, destination_path)
-
-    def list(self, remote_path):
-        yield from self._cloud_storage_interface.list(remote_path)
-
-
-class CloudStorageInterface(Protocol):
+class AbstractCloudStorageDriver(Protocol):
     """Cloud Storage Interface.
 
     Template class for Cloud Storage Interfaces. See `gxiba.interfaces` for implementations."""

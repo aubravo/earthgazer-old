@@ -7,7 +7,8 @@ from google.cloud import storage
 from google.cloud.storage import Bucket, Blob
 from google.oauth2 import service_account
 
-import gxiba.cloud_storage as gxiba_cloud_storage
+import gxiba.drivers
+import gxiba.environment
 
 regex_bucket_path_finder = '^gs://(.*?)/(.*)$'
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ def get_blob_name(path):
     return re_match[2]
 
 
-class GoogleCloudStorageInterface(gxiba_cloud_storage.CloudStorageInterface):
+class GCSDriver(gxiba.drivers.AbstractCloudStorageDriver):
 
     def __init__(self, credentials):
         self._source_bucket = None
@@ -82,16 +83,22 @@ class GoogleCloudStorageInterface(gxiba_cloud_storage.CloudStorageInterface):
         if not destination_blob.exists():
             logger.debug(f'Copying {destination_blob.name}')
             self.set_source_bucket(f'{get_bucket_name(source_path)}')
-            destination_blob.rewrite(self.source_bucket.blobs(f'{get_blob_name(source_path)}'))
+            destination_blob.rewrite(self.source_bucket.blob(f'{get_blob_name(source_path)}'))
         else:
-            self.set_source_bucket(f'{get_bucket_name(source_path)}')
-            source_blob = self.source_bucket.blobs(f'{get_blob_name(source_path)}')
-            destination_blob.reload()
-            source_blob.reload()
-            if destination_blob.crc32c == source_blob.crc32c:
-                logger.info(f'Blob {destination_blob.name} already exists.')
-            else:
+            logger.info(f'Blob {destination_blob.name} already exists.')
+            if 'ignore' in gxiba.environment.gxiba_config['cloud-storage']['handle_duplicates'].lower():
+                logger.debug('Ignoring already present blob.')
+                return
+            elif 'rewrite':
+                self.set_source_bucket(f'{get_bucket_name(source_path)}')
+                source_blob = self.source_bucket.blob(f'{get_blob_name(source_path)}')
+                destination_blob.reload()
+                source_blob.reload()
+                if destination_blob.crc32c == source_blob.crc32c:
+                    return
                 destination_blob.rewrite(self.source_bucket.blobs(f'{get_blob_name(source_path)}'))
+            else:
+                raise Exception('Blob {destination_blob.name} already exists.')
 
     def upload(self, local_path, remote_path):
         destination_blob = Blob.from_string(remote_path, client=self.client)
