@@ -4,9 +4,11 @@ import json
 import logging
 import os
 import tempfile
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from sqlalchemy import create_engine
+import sqlalchemy.exc
+from sqlalchemy import create_engine, Column, Text, Integer, DateTime, Numeric
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session, registry
 
@@ -84,6 +86,19 @@ TEMP_PATH = f'{GXIBA_PATH}/temp'
 logger.debug(f'...Temp files path: {TEMP_PATH}')
 path_builder(TEMP_PATH)
 tempfile.tempdir = TEMP_PATH
+
+logger.debug('Getting monitored locations file.')
+GXIBA_LOCATIONS = {}
+if os.path.exists(f'{GXIBA_PATH}/locations.json') and os.path.getsize(f'{GXIBA_PATH}/locations.json') > 0:
+    with open(f'{GXIBA_PATH}/locations.json', 'r+') as locations:
+        GXIBA_LOCATIONS = json.load(locations)['locations']
+else:
+    with open(f'{GXIBA_PATH}/locations.json', 'w+') as locations:
+        ...
+
+for location in GXIBA_LOCATIONS:
+    for key in location.keys():
+        logger.debug(f'...Found monitored location: {key} at {location[key]["latitude"]}, {location[key]["longitude"]}')
 
 # =====================================================
 # ===============Project configuration=================
@@ -172,6 +187,9 @@ for section in gxiba_config_defaults.sections():
         else:
             raise NotImplementedError(f'No type handling implemented for \'{gxiba_config_types[section][item]}\'')
 
+gxiba_single_accoount_keys_location = gxiba_config['core']['service_account_keys_location']
+
+
 # =====================================================
 # =======================Logger========================
 # =====================================================
@@ -207,11 +225,101 @@ logger.debug(f'......Host: {gxiba_config["database"]["host"]}:{gxiba_config["dat
 logger.debug(f'......Username: {gxiba_config["database"]["username"]}')
 logger.debug(f'......Database: {gxiba_config["database"]["database"]}')
 
-MAPPER_REGISTRY = registry()
-
 logger.debug(f'Starting database session.')
 GXIBA_DATABASE_SESSION = Session(GXIBA_DATABASE_ENGINE)
 GXIBA_DATABASE_SCHEMA = gxiba_config['database']['schema']
+
+
+logger.debug(f'...Attempting to create database structure.')
+MAPPER_REGISTRY = registry()
+
+
+class GxibaDataBaseObject:
+
+    _in_database: bool
+    create_timestamp: datetime
+    last_update_timestamp: datetime
+
+    def update(self):
+        if not self._in_database:
+            try:
+                self.create_timestamp = datetime.datetime.now()
+                self.last_update_timestamp = datetime.datetime.now()
+                GXIBA_DATABASE_SESSION.add(self)
+                GXIBA_DATABASE_SESSION.commit()
+                self._in_database = True
+            except sqlalchemy.exc.IntegrityError:
+                if 'overwrite' in gxiba_config['database']['handle_duplicates'].lower():
+                    GXIBA_DATABASE_SESSION.rollback()
+                    self.create_timestamp = datetime.datetime.now()
+                    self.last_update_timestamp = datetime.datetime.now()
+                    GXIBA_DATABASE_SESSION.commit()
+                elif 'ignore' in gxiba_config['database']['handle_duplicates'].lower():
+                    GXIBA_DATABASE_SESSION.rollback()
+                    logger.debug('......Ignoring duplicate value')
+                else:
+                    raise
+
+        else:
+            self.last_update_timestamp = datetime.datetime.now()
+            GXIBA_DATABASE_SESSION.commit()
+
+    def drop(self):
+        GXIBA_DATABASE_SESSION.delete(self)
+
+    @property
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+@MAPPER_REGISTRY.mapped
+@dataclass
+class BandMetadata(GxibaDataBaseObject):
+    __tablename__ = "band_metadata"
+    if 'sqlite' not in GXIBA_DATABASE_ENGINE.name.lower():
+        __table_args__ = {"schema": GXIBA_DATABASE_SCHEMA}
+    __sa_dataclass_metadata_key__ = "sa"
+
+    platform_id: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    band: int = field(metadata={"sa": Column(Integer, primary_key=True)})
+    metadata_field_name: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    metadata_field_value: str = field(metadata={"sa": Column(Text)})
+    create_timestamp: datetime = field(default_factory=datetime.datetime.now, metadata={"sa": Column(DateTime)})
+    last_update_timestamp: datetime = field(default_factory=datetime.datetime.now, metadata={"sa": Column(DateTime)})
+    _in_database: bool = False
+
+    def __post_init__(self):
+        self._in_database = False
+
+
+@ MAPPER_REGISTRY.mapped
+@ dataclass
+class ImageMetadata(GxibaDataBaseObject):
+    __tablename__ = "image_metadata"
+    if 'sqlite' not in GXIBA_DATABASE_ENGINE.name.lower():
+        __table_args__ = {"schema": GXIBA_DATABASE_SCHEMA}
+    __sa_dataclass_metadata_key__ = "sa"
+
+    platform_id: str = field(metadata={"sa": Column(Text, primary_key=True)})
+    platform: str = field(metadata={"sa": Column(Text)})
+    sensing_time: datetime = field(metadata={"sa": Column(DateTime)})
+    latitude_north: float = field(metadata={"sa": Column(Numeric)})
+    latitude_south: float = field(metadata={"sa": Column(Numeric)})
+    longitude_west: float = field(metadata={"sa": Column(Numeric)})
+    longitude_east: float = field(metadata={"sa": Column(Numeric)})
+    base_url: str = field(metadata={"sa": Column(Text)})
+    status: str = field(metadata={"sa": Column(Text)})
+    usage: str = field(default='', metadata={"sa": Column(Text)})
+    create_timestamp: datetime = field(default_factory=datetime.datetime.now, metadata={"sa": Column(DateTime)})
+    last_update_timestamp: datetime = field(default_factory=datetime.datetime.now, metadata={"sa": Column(DateTime)})
+    _in_database: bool = False
+
+    def __post_init__(self):
+        self._in_database = False
+
+
+MAPPER_REGISTRY.metadata.create_all(bind=GXIBA_DATABASE_ENGINE, checkfirst=True)
+
 
 # =====================================================
 # ======================BigQuery=======================
@@ -221,9 +329,14 @@ GXIBA_DATABASE_SCHEMA = gxiba_config['database']['schema']
 GXIBA_BIGQUERY_INTERFACE: gxiba.data_sources.bigquery.BigQueryInterface = GxibaPlaceholder(
                                                                             name='GXIBA_BIGQUERY_INTERFACE')
 if gxiba_config['bigquery']['activate']:
-    with open(gxiba_config['bigquery']['service_account_keys_location']) as service_account_keys:
+    if gxiba_single_accoount_keys_location:
+        bigquery_interface_keys_location = gxiba_single_accoount_keys_location
+    else:
+        bigquery_interface_keys_location = gxiba_config['bigquery']['service_account_keys_location']
+    with open(bigquery_interface_keys_location) as service_account_keys:
         keys = json.load(service_account_keys)
     GXIBA_BIGQUERY_INTERFACE = gxiba.data_sources.bigquery.BigQueryInterface(keys)
+    del bigquery_interface_keys_location
 
 logger.info('Project environment setup complete!')
 
@@ -237,16 +350,21 @@ GXIBA_CLOUD_STORAGE_INTERFACE: gxiba.cloud_storage.CloudStorageInterface = Gxiba
                                                                             name='GXIBA_CLOUD_STORAGE_INTERFACE')
 
 if gxiba_config['cloud-storage']['activate']:
-    with open(gxiba_config['cloud-storage']['service_account_keys_location']) as service_account_keys:
+    if gxiba_single_accoount_keys_location:
+        cloud_storage_interface_keys_location = gxiba_single_accoount_keys_location
+    else:
+        cloud_storage_interface_keys_location = gxiba_config['cloud-storage']['service_account_keys_location']
+    with open(cloud_storage_interface_keys_location) as service_account_keys:
         keys = json.load(service_account_keys)
     GXIBA_CLOUD_STORAGE_INTERFACE = gxiba.cloud_storage.CloudStorageInterface(
         driver=getattr(gxiba.drivers, gxiba_config['cloud-storage']['driver']),
         credentials=keys
     )
+    del cloud_storage_interface_keys_location
 
 GXIBA_CLOUD_STORAGE_BUCKET = gxiba_config['cloud-storage']['bucket_name']
 
 logger.info('Project environment setup complete!')
 
 # Delete variables not available for user access
-del _gxiba_lib_path, gxiba_config_local, gxiba_config_types, gxiba_config_defaults, _gxiba_config_path, gxiba_config
+del _gxiba_lib_path, gxiba_config_local, gxiba_config_types, gxiba_config_defaults, _gxiba_config_path
