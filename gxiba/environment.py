@@ -6,18 +6,17 @@ import os
 import tempfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Callable
 
 import sqlalchemy.exc
-from sqlalchemy import create_engine, Column, Text, Integer, DateTime, Numeric
+from sqlalchemy import create_engine, Column, Text, Integer, DateTime, Numeric, asc, desc
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import Session, registry
-
-__version__ = '0.5.1'
+from sqlalchemy.orm import scoped_session, sessionmaker, registry
 
 import gxiba.data_sources.bigquery
-import gxiba.drivers
-import gxiba.cloud_storage
+import gxiba.drivers.cloud_storage_drivers
 
+__version__ = '0.5.1'
 
 class GxibaPlaceholder:
     class NotInitializedError(Exception):
@@ -36,7 +35,9 @@ class GxibaPlaceholder:
 
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='{asctime}-{levelname:.<9}.{name:.<25}..{message}', datefmt='%Y-%m-%d %H:%M:%S', style='{')
+                    format='{asctime}-{levelname:.<9}.{name:.<25}..{message}',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    style='{')
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +188,7 @@ for section in gxiba_config_defaults.sections():
         else:
             raise NotImplementedError(f'No type handling implemented for \'{gxiba_config_types[section][item]}\'')
 
-gxiba_single_accoount_keys_location = gxiba_config['core']['service_account_keys_location']
+unique_service_account_keys_location = gxiba_config['core']['service_account_keys_location']
 
 
 # =====================================================
@@ -226,7 +227,8 @@ logger.debug(f'......Username: {gxiba_config["database"]["username"]}')
 logger.debug(f'......Database: {gxiba_config["database"]["database"]}')
 
 logger.debug(f'Starting database session.')
-GXIBA_DATABASE_SESSION = Session(GXIBA_DATABASE_ENGINE)
+session_factory = sessionmaker(bind=GXIBA_DATABASE_ENGINE)
+GXIBA_DATABASE_SESSION = scoped_session(session_factory)
 GXIBA_DATABASE_SCHEMA = gxiba_config['database']['schema']
 
 
@@ -241,31 +243,37 @@ class GxibaDataBaseObject:
     last_update_timestamp: datetime
 
     def update(self):
+        threaded_session = GXIBA_DATABASE_SESSION()
         if not self._in_database:
             try:
                 self.create_timestamp = datetime.datetime.now()
                 self.last_update_timestamp = datetime.datetime.now()
-                GXIBA_DATABASE_SESSION.add(self)
-                GXIBA_DATABASE_SESSION.commit()
+                threaded_session.add(self)
+                threaded_session.commit()
                 self._in_database = True
             except sqlalchemy.exc.IntegrityError:
                 if 'overwrite' in gxiba_config['database']['handle_duplicates'].lower():
-                    GXIBA_DATABASE_SESSION.rollback()
+                    threaded_session.rollback()
+                    self.drop()
                     self.create_timestamp = datetime.datetime.now()
                     self.last_update_timestamp = datetime.datetime.now()
-                    GXIBA_DATABASE_SESSION.commit()
+                    threaded_session.add(self)
+                    threaded_session.commit()
                 elif 'ignore' in gxiba_config['database']['handle_duplicates'].lower():
-                    GXIBA_DATABASE_SESSION.rollback()
+                    threaded_session.rollback()
                     logger.debug('......Ignoring duplicate value')
                 else:
+                    threaded_session.rollback()
                     raise
 
         else:
             self.last_update_timestamp = datetime.datetime.now()
-            GXIBA_DATABASE_SESSION.commit()
+            threaded_session.commit()
 
     def drop(self):
-        GXIBA_DATABASE_SESSION.delete(self)
+        threaded_session = GXIBA_DATABASE_SESSION()
+        threaded_session.delete(self)
+        threaded_session.commit()
 
     @property
     def as_dict(self) -> dict:
@@ -321,16 +329,35 @@ class ImageMetadata(GxibaDataBaseObject):
 MAPPER_REGISTRY.metadata.create_all(bind=GXIBA_DATABASE_ENGINE, checkfirst=True)
 
 
+# ================Interaction Methods==================
+def database_query(database_object, query_filters=None, order_by_parameter=None, order='asc'):
+    if query_filters is None:
+        query_filters = []
+    threaded_session = GXIBA_DATABASE_SESSION()
+    query = threaded_session.query(database_object)
+    for query_filter in query_filters:
+        query = query.filter(query_filter)
+    if order_by_parameter:
+        if order.lower() == 'asc':
+            query = query.order_by(asc(order_by_parameter))
+        elif order.lower() == 'desc':
+            query = query.order_by(desc(order_by_parameter))
+        else:
+            raise NotImplementedError
+    for result in query:
+        result._in_database = True
+        yield result
+
 # =====================================================
 # ======================BigQuery=======================
 # =====================================================
 
 
-GXIBA_BIGQUERY_INTERFACE: gxiba.data_sources.bigquery.BigQueryInterface = GxibaPlaceholder(
-                                                                            name='GXIBA_BIGQUERY_INTERFACE')
+GXIBA_BIGQUERY_INTERFACE: \
+    gxiba.data_sources.bigquery.BigQueryInterface = GxibaPlaceholder(name='GXIBA_BIGQUERY_INTERFACE')
 if gxiba_config['bigquery']['activate']:
-    if gxiba_single_accoount_keys_location:
-        bigquery_interface_keys_location = gxiba_single_accoount_keys_location
+    if unique_service_account_keys_location:
+        bigquery_interface_keys_location = unique_service_account_keys_location
     else:
         bigquery_interface_keys_location = gxiba_config['bigquery']['service_account_keys_location']
     with open(bigquery_interface_keys_location) as service_account_keys:
@@ -346,18 +373,41 @@ logger.info('Project environment setup complete!')
 # =====================================================
 
 
-GXIBA_CLOUD_STORAGE_INTERFACE: gxiba.cloud_storage.CloudStorageInterface = GxibaPlaceholder(
-                                                                            name='GXIBA_CLOUD_STORAGE_INTERFACE')
+class CloudStorageInterface:
+    def __init__(self, driver: Callable, credentials: dict = None):
+        if credentials is None:
+            credentials = {}
+        self._cloud_storage_interface = driver(credentials)
+
+    @property
+    def interface(self):
+        return self._cloud_storage_interface
+
+    def download(self, remote_path, local_path):
+        self._cloud_storage_interface.download(remote_path, local_path)
+
+    def upload(self, local_path, remote_path):
+        self._cloud_storage_interface.upload(local_path, remote_path)
+
+    def copy(self, source_path, destination_path):
+        self._cloud_storage_interface.copy(source_path, destination_path)
+
+    def list(self, remote_path):
+        yield from self._cloud_storage_interface.list(remote_path)
+
+
+GXIBA_CLOUD_STORAGE_INTERFACE: \
+    CloudStorageInterface = GxibaPlaceholder(name='GXIBA_CLOUD_STORAGE_INTERFACE')
 
 if gxiba_config['cloud-storage']['activate']:
-    if gxiba_single_accoount_keys_location:
-        cloud_storage_interface_keys_location = gxiba_single_accoount_keys_location
+    if unique_service_account_keys_location:
+        cloud_storage_interface_keys_location = unique_service_account_keys_location
     else:
         cloud_storage_interface_keys_location = gxiba_config['cloud-storage']['service_account_keys_location']
     with open(cloud_storage_interface_keys_location) as service_account_keys:
         keys = json.load(service_account_keys)
-    GXIBA_CLOUD_STORAGE_INTERFACE = gxiba.cloud_storage.CloudStorageInterface(
-        driver=getattr(gxiba.drivers, gxiba_config['cloud-storage']['driver']),
+    GXIBA_CLOUD_STORAGE_INTERFACE = CloudStorageInterface(
+        driver=getattr(gxiba.drivers.cloud_storage_drivers, gxiba_config['cloud-storage']['driver']),
         credentials=keys
     )
     del cloud_storage_interface_keys_location
@@ -368,3 +418,4 @@ logger.info('Project environment setup complete!')
 
 # Delete variables not available for user access
 del _gxiba_lib_path, gxiba_config_local, gxiba_config_types, gxiba_config_defaults, _gxiba_config_path
+

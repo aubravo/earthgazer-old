@@ -2,8 +2,6 @@ import logging
 import datetime
 
 import gxiba.environment
-import gxiba.environment as gxiba_env
-import gxiba.database as gxiba_db
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +49,7 @@ def test_database_insertion_and_update():
             data_obj.update()
         logger.debug(f'...Testing field updates in BandMetadata {_ + 1}/10')
 
-    for data_obj in gxiba_db.database_query(gxiba.environment.BandMetadata, query_filters=filters, order_by_parameter=gxiba.environment.BandMetadata.band, order='desc'):
+    for data_obj in gxiba.environment.database_query(gxiba.environment.BandMetadata, query_filters=filters, order_by_parameter=gxiba.environment.BandMetadata.band, order='desc'):
         data_obj.status = 'CHANGE TEST'
         data_obj.update()
         logger.debug(data_obj)
@@ -60,7 +58,7 @@ def test_database_insertion_and_update():
         data_obj.drop()
 
     logger.debug(f'...Drop test:')
-    for data_obj in gxiba_db.database_query(gxiba.environment.BandMetadata):
+    for data_obj in gxiba.environment.database_query(gxiba.environment.BandMetadata):
         logger.warning(f'{data_obj} still found in BandMetadata table.')
         raise AssertionError
     logger.debug(f'...No records found. BandMetadata table contents dropped successfully.')

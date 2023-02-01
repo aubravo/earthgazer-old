@@ -7,7 +7,7 @@ from google.cloud import storage
 from google.cloud.storage import Bucket, Blob
 from google.oauth2 import service_account
 
-import gxiba.cloud_storage as gxiba_cloud_storage
+import gxiba.drivers
 import gxiba.environment
 
 regex_bucket_path_finder = '^gs://(.*?)/(.*)$'
@@ -24,7 +24,7 @@ def get_blob_name(path):
     return re_match[2]
 
 
-class GCSDriver(gxiba_cloud_storage.AbstractCloudStorageDriver):
+class GCSDriver(gxiba.drivers.AbstractCloudStorageDriver):
 
     def __init__(self, credentials):
         self._source_bucket = None
@@ -99,7 +99,6 @@ class GCSDriver(gxiba_cloud_storage.AbstractCloudStorageDriver):
                 destination_blob.rewrite(self.source_bucket.blobs(f'{get_blob_name(source_path)}'))
             else:
                 raise Exception('Blob {destination_blob.name} already exists.')
-
 
     def upload(self, local_path, remote_path):
         destination_blob = Blob.from_string(remote_path, client=self.client)
