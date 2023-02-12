@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class BigQueryPath(Enum):
@@ -70,26 +70,14 @@ class SatelliteImagePlatform(Enum):
 
 
 class ImageProcessingStatus(Enum):
-    BigQueryImport = 1
-    ProjectStorage = 2
-    BandMetadataProcessed = 3
-
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.name == other
-        if isinstance(other, int):
-            return self.value == other
-        if isinstance(other, ImageProcessingStatus):
-            return self is other
-        return False
+    BigQueryImport = auto()
+    ProjectStorage = auto()
+    MetadataProcessed = auto()
 
     def __str__(self):
         return f'{self.name}'
 
 
-class LandsatInterestBands(Enum):
-    blue = 2
-    green = 3
-    red = 4
-    swir1 = 6
-    swir2 = 7
+class BandProcessingStatus(Enum):
+    BandMetadataProcessed = auto()
+

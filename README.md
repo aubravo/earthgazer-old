@@ -1,19 +1,24 @@
 <a name="readme-top"></a>
 
-[![Contributors](https://img.shields.io/github/contributors/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/graphs/contributors)
-[![Forks](https://img.shields.io/github/forks/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/network/members)
-[![Stargazers](https://img.shields.io/github/stars/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/stargazers)
-[![Issues](https://img.shields.io/github/issues/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/issues)
-[![MIT License](https://img.shields.io/github/license/aubravo/gxiba.svg?style=for-the-badge)](https://github.com/aubravo/gxiba/blob/master/LICENSE.txt)
-[![Docker](https://img.shields.io/github/actions/workflow/status/aubravo/gxiba/docker-publish.yml?style=for-the-badge&logo=github)](https://github.com/aubravo/gxiba/actions/workflows/docker-publish.yml)
+[![Contributors](https://img.shields.io/github/contributors/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/network/members)
+[![Stargazers](https://img.shields.io/github/stars/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/stargazers)
+[![Issues](https://img.shields.io/github/issues/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/issues)
+[![MIT License](https://img.shields.io/github/license/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/blob/master/LICENSE.txt)
+[![Docker](https://img.shields.io/github/actions/workflow/status/aubravo/earthgazer/docker-publish.yml?style=for-the-badge&logo=github)](https://github.com/aubravo/earthgazer/actions/workflows/docker-publish.yml)
 
 <div>
 <br />
 <p align="center">
-<a href="https://github.com/aubravo/gxiba">
-<img src="docs/images/mission-logo.png" alt="Mission Logo" width="156" height="180">
+<a href="https://github.com/aubravo/earthgazer">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="earthgazer/webapp/static/img/earthgazer_name_white_transparent.png">
+  <source media="(prefers-color-scheme: light)" srcset="earthgazer/webapp/static/img/earthgazer_name_black_transparent.png">
+  <img alt="earthgazer logo" src="earthgazer/webapp/static/img/earthgazer_name_black_transparent.png">
+</picture>
+
 </a>
-<h1 align="center">GXIBA</h1>
+<h1 align="center">earthgazer</h1>
 <p align="center">
 <b>Guiranu bíchinu</b> / Todos somos hermanos,
 <br />
@@ -32,26 +37,18 @@
 <br />
 <br />
 <br />
-<b>Gxiba</b> means <b>sky</b> or <b>universe</b> in Zapoteco.
-UPAEP's second and third satellite missions are named as such.
 This library manages the data pipeline and infrastructure for image inputs, handle and pre-process them, to prepare
 for the machine learning training and testing processes.
-It allows for the coupling of diverse internal SQL Databases, and use of diverse traditional image processing using
-Python Pillow as a basis.
-<br />
-<br />
-The examples folder includes scripts that allow to construct the volcanic ash detection capability for the 
-Gxiba-1 and Gxiba-2 missions.
 <br />
 <br />
 If you are interested in participating, please feel free to contribute.
 <br />
-<a href="https://github.com/aubravo/gxiba"><strong>Explore the docs »</strong></a>
+<a href="https://github.com/aubravo/earthgazer"><strong>Explore the docs »</strong></a>
 <br />
 <br />
-<a href="https://github.com/aubravo/gxiba/issues">Report Bug</a>
+<a href="https://github.com/aubravo/earthgazer/issues">Report Bug</a>
 ·
-<a href="https://github.com/aubravo/gxiba/issues">Request Feature</a>
+<a href="https://github.com/aubravo/earthgazer/issues">Request Feature</a>
 </p>
 </div>
 
@@ -107,7 +104,7 @@ To get started, you will need a **Google Console account** setup and meet the fo
 
 If you are interested on running the application locally:
 ```commandline
-git clone https://github.com/aubravo/gxiba
+git clone https://github.com/aubravo/earthgazer
 ```
 and get your service account keys into the project folder by running:
 ```commandline
@@ -117,31 +114,10 @@ if you are interested on running the application on kubernetes, both `kubectl` a
 Once your cluster is set up and is accessible by kubectl, it is recommended to pass the database connection requirements
 as a cluster secret, as well as the contents of the service account. For example:
 
-```commandline
-kubectl create secret generic my-secret --from-literal=username=myusername --from-literal=password=aSecurePassword
-```
-To use the `.yaml` files under the [infrastructure/kubernetes](infrastructure/kubernetes) as is, a secret called 
-`google-service-account-keys` is needed with the following secrets included:
-- DB_USERNAME
-- DB_PASSWORD
-- DB_HOST
-- DB_PORT
-- DB_NAME
-- BUCKET_PATH
-- GOOGLE_KEYS
-
-## Useful commands: ##
-
-The `infrastructure\kubernetes` folder in the project contains several yaml files that allow to deploy various useful
-tools in the cluster, and example for deploying them is:
-```commandline
-kubectl apply -f infrastructure\kubernetes\update_files_sentinel.yaml
-```
-
 <!-- TODO: Add Useful commands -->
 
 ## Roadmap
-See the [open issues](https://github.com/aubravo/gxiba/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/aubravo/earthgazer/issues) for a full list of proposed features (and known issues).
 
 ## Contributing
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -157,8 +133,8 @@ Distributed under the MIT License. See `LICENSE` doc for more information.
 Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com); [alvaroulises.bravo@upaep.edu.mx](mailto:alvaroulises.bravo@upaep.edu.mx)
 
 Project Links:
-* [Gxiba - GitHub](https://github.com/aubravo/gxiba)
-* [Gxiba - UPAEP](https://upaep.mx/gxiba/)
+* [earthgazer - GitHub](https://github.com/aubravo/earthgazer)
+* [earthgazer - UPAEP](https://upaep.mx/gxiba/)
 
 ## Acknowledgments
 

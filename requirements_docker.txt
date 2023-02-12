@@ -9,3 +9,6 @@ Pillow
 psycopg2-binary
 PyYAML
 SQLAlchemy
+redis
+parquet
+celery[redis,sqlalchemy]
