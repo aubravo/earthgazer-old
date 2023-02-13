@@ -1,21 +1,18 @@
 import logging
-import os
-import pathlib
 import time
-from os.path import isdir
+
+from earthgazer.config import Configuration
 
 logger = logging.getLogger(__name__)
 
 
-def execute_setup():
-    logger.info(f'Initializing environment setup.')
-    setup_start_time = time.time()
+logger.info(f'Initializing environment setup.')
+setup_start_time = time.time()
 
-    setup_end_time = time.time()
-    logger.info(f'Environment setup completed in {setup_end_time - setup_start_time}.')
+GXIBA_CONFIGURATION = Configuration.parse_file('configs_test.json')
+print(dict(GXIBA_CONFIGURATION))
 
-    del setup_start_time, setup_end_time
+setup_end_time = time.time()
+logger.info(f'Environment setup completed in {setup_end_time - setup_start_time}.')
 
-
-if __name__ == '__main__':
-    execute_setup()
+del setup_start_time, setup_end_time

@@ -12,13 +12,12 @@
 <p align="center">
 <a href="https://github.com/aubravo/earthgazer">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="earthgazer/webapp/static/img/earthgazer_name_white_transparent.png">
-  <source media="(prefers-color-scheme: light)" srcset="earthgazer/webapp/static/img/earthgazer_name_black_transparent.png">
-  <img alt="earthgazer logo" src="earthgazer/webapp/static/img/earthgazer_name_black_transparent.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/earthgazer_name_white_transparent.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/earthgazer_name_black_transparent.png">
+  <img alt="earthgazer logo" src="docs/images/earthgazer_name_black_transparent.png">
 </picture>
 
 </a>
-<h1 align="center">earthgazer</h1>
 <p align="center">
 <b>Guiranu bíchinu</b> / Todos somos hermanos,
 <br />

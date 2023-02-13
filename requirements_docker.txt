@@ -12,3 +12,4 @@ SQLAlchemy
 redis
 parquet
 celery[redis,sqlalchemy]
+pydantic

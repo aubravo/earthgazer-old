@@ -60,7 +60,7 @@ class GxibaPlaceholder:
 
 logging.basicConfig(level=logging.DEBUG,
                     format='{asctime}-{levelname:.<9}.{name:.<25}..{message}',
-                    datefmt='%Y-%m-%d %H:%M:%S',
+                    datefmt='%Y-%m-%dictionary %H:%M:%S',
                     style='{')
 
 logger = logging.getLogger(__name__)

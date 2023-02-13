@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class Configuration:
+class Configuration(BaseModel):
     redis_url: str = 'redis://'

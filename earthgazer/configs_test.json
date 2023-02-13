@@ -1,0 +1,10 @@
+{
+  "bigquery": {},
+  "celery": {},
+  "database": {},
+  "pipeline": {},
+  "task_broker": {},
+  "webapp": {},
+  "worker": {},
+  "redis": {}
+}

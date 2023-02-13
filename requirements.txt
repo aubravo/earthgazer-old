@@ -14,3 +14,4 @@ matplotlib
 redis
 parquet
 celery[redis,sqlalchemy]
+pydantic
