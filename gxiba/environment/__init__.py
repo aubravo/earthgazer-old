@@ -28,9 +28,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker, registry
 import gxiba.data_sources.bigquery
 import gxiba.drivers.cloud_storage_drivers
 
-__version__ = '0.5.1'
-
-from gxiba.environment.config_loader_type_mappers import config_bool, config_int, config_float
 
 GXIBA_LIB_PATH = f'{Path(__file__).parents[2].absolute()}'
 print(GXIBA_LIB_PATH)
@@ -49,7 +46,7 @@ class GxibaPlaceholder:
     def __init__(self, name):
         self._name = name
 
-    def __getattr__(self, item):
+    def __getattr__(self, _item):
         raise self.NotInitializedError(f"{self._name} needs to be activated before usage."
                                        f"Please review your gxiba.cfg file or environmental variables.")
 
@@ -64,118 +61,6 @@ logging.basicConfig(level=logging.DEBUG,
                     style='{')
 
 logger = logging.getLogger(__name__)
-
-logger.info(f"""\n
-                   ▄▄ • ▐▄• ▄ ▪  ▄▄▄▄·  ▄▄▄·
-                  ▐█ ▀ ▪ █▌█▌▪██ ▐█ ▀█▪▐█ ▀█
-                  ▄█ ▀█▄ ·██· ▐█·▐█▀▀█▄▄█▀▀█
-                  ▐█▄▪▐█▪▐█·█▌▐█▌██▄▪▐█▐█▪ ▐▌
-                  ·▀▀▀▀ •▀▀ ▀▀▀▀▀·▀▀▀▀  ▀  ▀ 
------------------------------------------------------------------
-Version {__version__}
-Project homepage at: https://github.com/aubravo/gxiba
-For more information contact: alvaroubravo@gmail.com
------------------------------------------------------------------
-""")
-
-
-# =====================================================
-# =============Project system structure================
-# =====================================================
-
-
-def path_builder(path: str):
-    logger.debug(f'......Attempting to create path: {path}')
-    Path(path).mkdir(parents=True, exist_ok=True)
-
-
-# Get the library's installation path
-
-logger.debug(f'Gxiba lib installed in: {GXIBA_LIB_PATH}')
-
-# Local path construction starts here
-logger.debug(f'Starting project environment definition.')
-logger.debug(f'Following structure will be created if not present:')
-
-# Main project path
-logger.debug(f'...Project base path: {GXIBA_PROJECT_PATH}')
-path_builder(GXIBA_PROJECT_PATH)
-
-# Sub structure creation and configuration
-LOGGING_PATH = f'{GXIBA_PROJECT_PATH}/log'
-logger.debug(f'...Log path: {LOGGING_PATH}')
-path_builder(LOGGING_PATH)
-
-TEMP_PATH = f'{GXIBA_PROJECT_PATH}/temp'
-logger.debug(f'...Temp files path: {TEMP_PATH}')
-path_builder(TEMP_PATH)
-tempfile.tempdir = TEMP_PATH
-
-logger.debug('Getting monitored locations file.')
-GXIBA_LOCATIONS = {}
-if os.path.exists(f'{GXIBA_PROJECT_PATH}/locations.json') and os.path.getsize(
-        f'{GXIBA_PROJECT_PATH}/locations.json') > 0:
-    with open(f'{GXIBA_PROJECT_PATH}/locations.json', 'r+') as locations:
-        GXIBA_LOCATIONS = json.load(locations)['locations']
-else:
-    with open(f'{GXIBA_PROJECT_PATH}/locations.json', 'w+') as locations:
-        ...
-
-for location in GXIBA_LOCATIONS:
-    for key in location.keys():
-        logger.debug(f'...Found monitored location: {key} at {location[key]["latitude"]}, {location[key]["longitude"]}')
-
-# =====================================================
-# ===============Project configuration=================
-# =====================================================
-
-# Create config file in project path if it doesn't exist
-logger.debug('Setting up project configuration parameters.')
-if not os.path.exists(f'{GXIBA_PROJECT_PATH}/gxiba.cfg'):
-    with open(f'{GXIBA_LIB_PATH}/templates/gxiba.cfg', 'r') as gxiba_config_template, \
-            open(GXIBA_CONFIG_PATH, 'w') as gxiba_config_file:
-        for line in gxiba_config_template:
-            if not line[:2] == '#!':
-                gxiba_config_file.write(line)
-
-# Read config values and replace them by corresponding environmental variable value if present
-
-gxiba_config = {}
-gxiba_config_local = configparser.ConfigParser()
-gxiba_config_local.read(GXIBA_CONFIG_PATH)
-gxiba_config_types = configparser.ConfigParser()
-gxiba_config_types.read(f'{GXIBA_LIB_PATH}/templates/gxiba_types.cfg')
-gxiba_config_defaults = configparser.ConfigParser()
-gxiba_config_defaults.read(f'{GXIBA_LIB_PATH}/templates/gxiba.cfg')
-
-print(gxiba_config_local.sections())
-print(gxiba_config_defaults.sections())
-
-for section in gxiba_config_defaults.sections():
-    gxiba_config[section] = {}
-    for item in gxiba_config_defaults[section]:
-        if parameter := os.getenv(
-                f'GXIBA__{str(section.upper().replace("-", "_"))}__{str(item).upper().replace("-", "_")}'):
-            logger.debug(f'...Environment override found for parameter {section}.{item}')
-            gxiba_config_local[section][item] = parameter
-        try:
-            parameter_value = gxiba_config_local[section][item]
-        except KeyError:
-            logger.debug(f'...No value found for parameter {section}.{item}. Setting to default.')
-            parameter_value = gxiba_config_defaults[section][item]
-        if gxiba_config_types[section][item] == 'string':
-            gxiba_config[section].update({item: parameter_value})
-        elif gxiba_config_types[section][item] == 'int':
-            gxiba_config[section].update({item: config_int(parameter_value)})
-        elif gxiba_config_types[section][item] == 'bool':
-            gxiba_config[section].update({item: config_bool(parameter_value)})
-        elif gxiba_config_types[section][item] == 'float':
-            gxiba_config[section].update({item: config_float(parameter_value)})
-        else:
-            raise NotImplementedError(f'No type handling implemented for \'{gxiba_config_types[section][item]}\'')
-
-print(gxiba_config)
-unique_service_account_keys_location = gxiba_config['core']['service_account_keys_location']
 
 # =====================================================
 # =======================Logger========================

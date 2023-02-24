@@ -2,8 +2,8 @@ import concurrent.futures
 import logging
 import re
 from datetime import datetime
-from typing import Iterable
 from time import perf_counter
+from typing import Iterable
 
 import gxiba.environment
 
@@ -94,7 +94,8 @@ def process_image_metadata(image_metadata):
             # TODO: Fix hardcoded gs bucket path.
 
             bucket_source_path = f'gs://{gxiba.GXIBA_CLOUD_STORAGE_INTERFACE.interface.source_bucket.name}/{name}'
-            bucket_save_path = f'gs://{gxiba.GXIBA_CLOUD_STORAGE_BUCKET}/{image_metadata.platform_id}/{name.split("/")[-1]}'
+            bucket_save_path = f'gs://{gxiba.GXIBA_CLOUD_STORAGE_BUCKET}/' \
+                               f'{image_metadata.platform_id}/{name.split("/")[-1]}'
 
             logger.debug(f'......Attempting to copy file "{name}" to own bucket.')
             if name[-4:] in ['.jp2'] and any(folder in name for folder in ['IMG_DATA']):
@@ -149,7 +150,7 @@ def process_image_metadata(image_metadata):
                 gxiba.GXIBA_CLOUD_STORAGE_INTERFACE.copy(bucket_source_path, bucket_save_path)
             else:
                 logger.debug('......Ignored for missing data naming convention filter.')
-    except:
+    except Exception:
         logger.exception(f'Something went wrong with {image_metadata}')
 
 
@@ -188,4 +189,4 @@ if __name__ == '__main__':
     start_time = perf_counter()
     count = update_database_metadata()
     finish_time = perf_counter()
-    logger.debug(f'Processed {count} images in {finish_time-start_time}.')
+    logger.debug(f'Processed {count} images in {finish_time - start_time}.')

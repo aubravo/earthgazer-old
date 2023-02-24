@@ -1,5 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseSettings
 
 
-class Configuration(BaseModel):
+class Configuration(BaseSettings):
     ...

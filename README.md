@@ -10,35 +10,12 @@
 <div>
 <br />
 <p align="center">
-<a href="https://github.com/aubravo/earthgazer">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/earthgazer_name_white_transparent.png">
-  <source media="(prefers-color-scheme: light)" srcset="docs/images/earthgazer_name_black_transparent.png">
-  <img alt="earthgazer logo" src="docs/images/earthgazer_name_black_transparent.png">
-</picture>
-
-</a>
+<a href="https://github.com/aubravo/earthgazer"><img src="docs/images/earthgazer_name_white_transparent.png"></a>
 <p align="center">
-<b>Guiranu bíchinu</b> / Todos somos hermanos,
-<br />
-<b>riní’nu túbisi diidxa’,</b> / hablamos la misma lengua,
-<br />
-<b>nadxiinu’ guendanabani,</b> / amamos la existencia,
-<br />
-<b>guibá’ ni rusieepa íquenu,</b> / el cielo que nos cubre,
-<br />
-<b>ubidxa xiñá’, yudé xti’ neza,</b> / el rojo sol, el polvo del camino,
-<br />
-<b>ca diidxadú’ xti’ guendarannaxhii.</b> / las palabras tiernas del amor.
-<br />
-<br />
-<b>Esteban Rios Cruz</b> (<b>Laanu’</b> / Nosotros)
-<br />
-<br />
-<br />
 This library manages the data pipeline and infrastructure for image inputs, handle and pre-process them, to prepare
 for the machine learning training and testing processes.
 <br />
+This project is licensed with GPL-3.0-or-later.
 <br />
 If you are interested in participating, please feel free to contribute.
 <br />
@@ -59,7 +36,7 @@ If you are interested in participating, please feel free to contribute.
   * [Getting Started](#getting-started)
     * [Prerequisites](#prerequisites)
     * [Installation](#installation)
-  * [Useful commands:](#useful-commands-)
+  * [Useful commands](#useful-commands)
   * [Roadmap](#roadmap)
   * [Contributing](#contributing)
   * [License](#license)
@@ -72,7 +49,7 @@ If you are interested in participating, please feel free to contribute.
 This project started as part of [Alvaro Bravo](mailto:alvaroubravo@gmail.com)'s Master's thesis as a way to
 develop the capability of segregating volcanic emissions from clouds in satellite images in RGB, by training a CNN
 with images from Sentinel and Landsat missions which offer hyperspectral data that allows the labelling of data for
-training the neural network. Even though, the target of the project is the Popocatepetl volcano, it's built in such
+training the neural network. Even though, the target of the project is the Popocatépetl volcano, it's built in such
 a way as to allow the use of the infrastructure to explore and handle satellite images from different sources and
 locations.
 
@@ -112,6 +89,8 @@ gcloud iam service-accounts keys create keys.json --iam-account=your-service-acc
 if you are interested on running the application on kubernetes, both `kubectl` and a project database are required.
 Once your cluster is set up and is accessible by kubectl, it is recommended to pass the database connection requirements
 as a cluster secret, as well as the contents of the service account. For example:
+
+## Useful Commands
 
 <!-- TODO: Add Useful commands -->
 

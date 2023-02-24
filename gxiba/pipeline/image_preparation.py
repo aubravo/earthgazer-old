@@ -93,6 +93,7 @@ if __name__ == '__main__':
             ax1.set_axis_off()
             ax2.imshow(Image.fromarray(landsat_image.swir_array))
             ax2.set_axis_off()
-            plt.margins(0,0)
-            plt.savefig(f'{local_path.absolute()}\\{capture.platform_id}_band_comparison.png', transparent=True, bbox_inches="tight", pad_inches=0)
+            plt.margins(0, 0)
+            plt.savefig(f'{local_path.absolute()}\\{capture.platform_id}_band_comparison.png',
+                        transparent=True, bbox_inches="tight", pad_inches=0)
             landsat_image.save_full_exdir(f'{local_path.absolute()}\\{capture.platform_id}.exdir')

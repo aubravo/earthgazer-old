@@ -42,7 +42,8 @@ class LandsatImage:
 
     @property
     def is_empty(self):
-        if any([self.blue is not None, self.green is not None, self.red is not None, self.swir1 is not None, self.swir2 is not None]):
+        if any([self.blue is not None, self.green is not None, self.red is not None, self.swir1 is not None,
+                self.swir2 is not None]):
             return False
         else:
             return True
