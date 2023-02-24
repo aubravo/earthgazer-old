@@ -8,9 +8,9 @@ Once the project reaches a stable status, version supporting might be introduced
 If you are using this project or planning on using it please let me know to change the developing process accordingly.
 Contact: Alvaro Bravo at <alvaroubravo@gmail.com>
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.6.0   | ✅                 |
+| Version | Supported |
+|---------|-----------|
+| 0.6.0   | ✅         |
 
 ## Reporting a Vulnerability
 

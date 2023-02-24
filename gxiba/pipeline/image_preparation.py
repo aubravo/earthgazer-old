@@ -29,7 +29,7 @@ parser.add_argument('-H', '--db-host', help='Set database host.')
 parser.add_argument('-U', '--db-username', help='Set database username.')
 parser.add_argument('-P', '--db-password', help='Set database password.')
 parser.add_argument('-p', '--db-port', help='Set database port.')
-parser.add_argument('-d', '--db-database', help='Name of the database to use.', default='gxiba')
+parser.add_argument('-dictionary', '--db-database', help='Name of the database to use.', default='gxiba')
 parser.add_argument('-F', '--db-force-engine', action='store_true', help='Force engine generation.')
 parser.add_argument('-K', '--get-keys-from-env', action='store_true',
                     help='Get the Google Service Account keys from environmental variables instead of a keys.json file '
@@ -93,6 +93,7 @@ if __name__ == '__main__':
             ax1.set_axis_off()
             ax2.imshow(Image.fromarray(landsat_image.swir_array))
             ax2.set_axis_off()
-            plt.margins(0,0)
-            plt.savefig(f'{local_path.absolute()}\\{capture.platform_id}_band_comparison.png', transparent=True, bbox_inches="tight", pad_inches=0)
+            plt.margins(0, 0)
+            plt.savefig(f'{local_path.absolute()}\\{capture.platform_id}_band_comparison.png',
+                        transparent=True, bbox_inches="tight", pad_inches=0)
             landsat_image.save_full_exdir(f'{local_path.absolute()}\\{capture.platform_id}.exdir')
