@@ -1,0 +1,7 @@
+
+earthgazer - Satellite image processing pipeline
+Copyright (C) 2023  Alvaro U. Bravo
+This program comes with ABSOLUTELY NO WARRANTY;
+This is free software, and you are welcome to redistribute it
+under certain conditions; for details type
+'earthgazer show license'.

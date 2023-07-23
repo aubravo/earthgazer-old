@@ -1,0 +1,12 @@
+google-cloud-bigquery
+google-cloud-storage
+pydantic
+redis-om
+jinja2
+sqlalchemy
+rasterio
+numpy
+matplotlib
+pillow
+pydantic-settings
+```
