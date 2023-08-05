@@ -1,2 +1,5 @@
 /keys.json
 
+db.sqlite3
+eg.db
+config/keys.json

@@ -1,8 +1,8 @@
 {
   "sentinel": {
     "bigquery_path": "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index",
-    "main_id": "granule_id",
-    "secondary_id": "product_id",
+    "main_id": "product_id",
+    "secondary_id": "granule_id",
     "mission_id": "\"SENTINEL_2\"",
     "sensing_time": "sensing_time",
     "cloud_cover": "cloud_cover",

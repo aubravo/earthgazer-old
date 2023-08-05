@@ -1,4 +1,3 @@
-
 earthgazer - Satellite image processing pipeline
 Copyright (C) 2023  Alvaro U. Bravo
 This program comes with ABSOLUTELY NO WARRANTY;

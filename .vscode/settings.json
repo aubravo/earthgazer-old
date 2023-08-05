@@ -1,0 +1,22 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Volcanes Activos",
+            "database": "C:\\Users\\alvar\\Downloads\\CENAPRED_Volcan_Activos\\CENAPRED_Volcan_Activos.dbf"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "earthgazer",
+            "database": "${workspaceFolder:earthgazer}/eg.db"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "old_earthgazer",
+            "database": "${workspaceFolder:earthgazer}/db.sqlite3"
+        }
+    ]
+}

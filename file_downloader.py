@@ -20,12 +20,51 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound, IntegrityError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from db_config import ImageMetadata, TrackedLocations, BandMetadata, DatasetImages, Base
+from db_config import Image, Location, Band, Base
 from exceptions import MissingBandError, DuplicateBandError, ConfigFileNotFound
 
 logger = logging.getLogger(__name__)
 sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('queries/'))
 
+
+class EGConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix='eg_')
+
+    # Local environment
+    local_path: str = f'{os.path.expanduser("~")}/.eg'.replace('\\', '/')
+    
+    # Pipeline steps
+    update_data: bool = False
+    download_band_images: bool = False
+    composite_generation: bool = False
+    normalize_dataset: bool = False
+    track_images: bool = False
+
+    # TODO: refactor storage to use driver pattern
+    # Download/Storage
+    force_download: bool = False
+    storage_type: str = Field(default='local')
+    local_storage_base_path: str = f'{local_path}/storage'
+    cloud_backup_bucket: str = 'eg-backup'
+    remote_storage_base_path: str = f'{cloud_backup_bucket}/eg/storage'
+    google_credentials_file_path: str = f'{local_path}/credentials.json'
+    google_storage_downloader_retry_inital: int = 1
+    google_storage_downloader_retry_maximum: int = 120
+    google_storage_downloader_retry_multiplier: int = 2
+    google_storage_downloader_retry_timeout: int = 1200
+
+    # Database
+    database_url: AnyUrl = Field(default=f'sqlite:///{local_path}/eg.db', exclude=True)
+    database_type: ClassVar[str] = str(database_url).split(':')[0]
+    database_engine_echo: bool = False
+    
+    # Locations
+    load_locations_from_path: bool = False
+    locations_path: str = f'{local_path}/locations'
+
+    # Platforms
+    monitored_platforms: list = ['LANDSAT_8', 'SENTINEL_2']
+    
 
 class BandProcessor:
     @staticmethod
@@ -38,32 +77,6 @@ class BandProcessor:
         image = np.interp(image, (image.min(), image.max()), (0, 255)).astype(np.uint8)
         im = Image.fromarray(image)
         im.save(output_path, 'JPEG', quality=100)
-
-
-class EGConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix='eg_')
-    update_data: bool = False
-    download_band_images: bool = False
-    composite_generation: bool = False
-    normalize_dataset: bool = False
-    track_images: bool = False
-    force_download: bool = False
-    database_engine_echo: bool = False
-    load_locations_from_path: bool = False
-    monitored_platforms: list = ['LANDSAT_8', 'SENTINEL_2']
-    local_path: str = f'{os.path.expanduser("~")}/.eg'.replace('\\', '/')
-    locations_path: str = f'{local_path}/locations'
-    database_url: AnyUrl = Field(default=f'sqlite:///{local_path}/eg.db', exclude=True)
-    google_credentials_file_path: str = f'{local_path}/credentials.json'
-    google_storage_downloader_retry_inital: int = 1
-    google_storage_downloader_retry_maximum: int = 120
-    google_storage_downloader_retry_multiplier: int = 2
-    google_storage_downloader_retry_timeout: int = 1200
-    database_type: ClassVar[str] = str(database_url).split(':')[0]
-    local_storage_base_path: str = f'{local_path}/storage'
-    storage_type: str = Field(default='local')
-    cloud_backup_bucket: str = 'eg-backup'
-    remote_storage_base_path: str = f'{cloud_backup_bucket}/eg/storage'
 
 
 class EGProcessor:
@@ -129,10 +142,10 @@ class EGProcessor:
                             loc = json.load(f)
                             loc.update({'start_date': datetime.date.fromisoformat(loc['start_date']),
                                         'end_date': datetime.date.fromisoformat(loc['end_date'])})
-                            loc['location_id'] = session.query(TrackedLocations).count() + 1
+                            loc['location_id'] = session.query(Location).count() + 1
                             logger.debug(f'Adding {loc}')
                             try:
-                                session.add(TrackedLocations(**loc))
+                                session.add(Location(**loc))
                                 session.commit()
                             except IntegrityError:
                                 logger.warning(f'Location {loc["location_name"]} already exists')
@@ -148,15 +161,18 @@ class EGProcessor:
         try:
             for platform_config in self.bigquery_platforms_config:
                 logger.info(f'Updating {platform_config.capitalize()} platform data')
-                for location in session.query(TrackedLocations).where(TrackedLocations.active):
+                for location in session.query(Location).where(Location.active):
                     logger.info(f'Updating {location.location_name.capitalize()} location data')
                     platform_query_params = self.bigquery_platforms_config[platform_config]
-                    platform_query_params.update({'lat': location.lat,
-                                                  'lon': location.lon,
-                                                  'start_date': location.start_date,
-                                                  'end_date': location.end_date})
-                    platform_query = sql_environment.get_template('bigquery_get_locations.sql').render(
-                        **platform_query_params)
+                    platform_query_params.update(
+                        {
+                            'lat': location.latitude,
+                            'lon': location.longitude,
+                            'start_date': location.monitoring_period_start,
+                            'end_date': location.monitoring_period_start
+                        }
+                    )
+                    platform_query = sql_environment.get_template('bigquery_get_locations.sql').render(**platform_query_params)
                     for result in self.bigquery_client.query(platform_query):
                         if session.query(ImageMetadata).where(ImageMetadata.main_id == result["main_id"]).count() > 0:
                             logger.debug(f'{result["main_id"]} already in database')
@@ -287,6 +303,8 @@ def main():
     if eg.env.generate_composites:
         eg.generate_composites()
     exit(0)
+    
+    # TODO: reimplement this into the EGProcessor class
 
     with Session(engine) as session:
         if env.composite_generation:
@@ -357,53 +375,7 @@ def main():
             img = img.resize((256, 256))
             img.save(f'D:/normalized/{image}')
 
-    # Manual cleanup of unuseful images
-    # ===========================================================================
 
-    # Track useful images left in the dataset
-    if env.track_images:
-        logger.info('Tracking remaining images')
-        for remaining_image in os.listdir('D:/normalized'):
-            _id = remaining_image[0:remaining_image.rfind('_')]
-            if session.query(DatasetImages).where(DatasetImages.dataset_id == _id).count() < 1:
-                try:
-                    image = session.query(ImageMetadata.main_id).join(BandMetadata).where(
-                        BandMetadata.image_id.like(f'{_id}%')).group_by(ImageMetadata.main_id).one()[0]
-                    logger.debug(f'Image {remaining_image} parent found in db with id {image}')
-                    session.add(DatasetImages(main_id=image,
-                                              dataset_id=_id,
-                                              composite_type=remaining_image[
-                                                             remaining_image.rfind('_') + 1:remaining_image.rfind('.')],
-                                              status='available'))
-                    session.commit()
-                except NoResultFound:
-                    logger.exception('No parent found for image {remaining_image}')
-                    session.add(DatasetImages(main_id=None,
-                                              dataset_id=_id,
-                                              composite_type=remaining_image[
-                                                             remaining_image.rfind('_') + 1:remaining_image.rfind('.')],
-                                              status='missing_parent'))
-                    session.commit()
-                except MultipleResultsFound:
-                    logger.exception('Multiple parents found for image {remaining_image}')
-                    session.add(DatasetImages(main_id=None,
-                                              dataset_id=_id,
-                                              composite_type=remaining_image[
-                                                             remaining_image.rfind('_') + 1:remaining_image.rfind('.')],
-                                              status='multiple_parents'))
-                    session.commit()
-
-        ir = []
-        rgb = []
-        other = []
-        for x in session.query(DatasetImages).all():
-            if x.composite_type == 'ir':
-                ir.append(x)
-            elif x.composite_type == 'rgb':
-                rgb.append(x)
-            else:
-                other.append(x)
-        logger.debug(f'IR: {len(ir)} - RGB: {len(rgb)} - Other: {len(other)}')
 
     logger.debug('Ending db session')
 

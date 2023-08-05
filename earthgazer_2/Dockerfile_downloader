@@ -1,4 +1,0 @@
-FROM python:3.11.4
-LABEL authors="Alvaro Bravo"
-
-ENTRYPOINT ["top", "-b"]
