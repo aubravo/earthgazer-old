@@ -4,13 +4,13 @@
 [![Forks](https://img.shields.io/github/forks/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/network/members)
 [![Stargazers](https://img.shields.io/github/stars/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/stargazers)
 [![Issues](https://img.shields.io/github/issues/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/issues)
-[![MIT License](https://img.shields.io/github/license/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/blob/master/LICENSE.txt)
+[![GPL-3.0 License](https://img.shields.io/github/license/aubravo/earthgazer.svg?style=for-the-badge)](https://github.com/aubravo/earthgazer/blob/master/LICENSE.txt)
 [![Docker](https://img.shields.io/github/actions/workflow/status/aubravo/earthgazer/docker-publish.yml?style=for-the-badge&logo=github)](https://github.com/aubravo/earthgazer/actions/workflows/docker-publish.yml)
 
 <div>
 <br />
 <p align="center">
-<a href="https://github.com/aubravo/earthgazer"><img src="docs/images/earthgazer_name_white_transparent.png"></a>
+<a href="https://github.com/aubravo/earthgazer"><img src="docs/images/earthgazer_name_white_star.png"></a>
 <p align="center">
 This library manages the data pipeline and infrastructure for image inputs, handle and pre-process them, to prepare
 for the machine learning training and testing processes.
@@ -56,7 +56,6 @@ locations.
 ### Built With
 
 [![Python 3.11](https://img.shields.io/badge/Python3-4B8BBE?style=for-the-badge&logo=Python&logoColor=FFD43B)](https://python.org)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-326ce5?style=for-the-badge&logo=Kubernetes&logoColor=white)](https://kubernetes.io)
 [![Docker](https://img.shields.io/badge/Docker-0db7ed?style=for-the-badge&logo=Docker&logoColor=white)](https://docker.com)
 [![Google Cloud](https://img.shields.io/badge/Google_Cloud-DB4437?style=for-the-badge&logo=GoogleCloud&logoColor=F4B400)](https://cloud.google.com)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-425066?style=for-the-badge&logo=TensorFlow&logoColor=FF6F00)](https://tensorflow.org)
@@ -65,16 +64,11 @@ locations.
 
 ### Prerequisites
 
-> IMPORTANT: The data handling side of the project **REQUIRES AT LEAST PYTHON 3.11 TO RUN.** due to collections.abc changes required for the implemented protocols. 
-
 To get started, you will need a **Google Console account** setup and meet the following requirements:
 - a [GCP bucket](https://cloud.google.com/storage/docs/creating-buckets) setup for the project.
-- [_gsutil_](https://cloud.google.com/storage/docs/gsutil_install) and [_gcloud_](https://cloud.google.com/sdk/docs/install) installed on your machine
 - a [service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts) with at least the following roles:
   - bigquery.user
   - storage.objectAdmin (for security, only allow the service account access to the project bucket)
-- **OPTIONAL:** a [GKE cluster](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster) if you are interested on running your application on Kubernetes.
-- **OPTIONAL:** a Database setup for a production database setup.
 
 ### Installation 
 
@@ -84,11 +78,8 @@ git clone https://github.com/aubravo/earthgazer
 ```
 and get your service account keys into the project folder by running:
 ```commandline
-gcloud iam service-accounts keys create keys.json --iam-account=your-service-account
+gcloud iam service-accounts keys create credentials.json --iam-account=your-service-account
 ```
-if you are interested on running the application on kubernetes, both `kubectl` and a project database are required.
-Once your cluster is set up and is accessible by kubectl, it is recommended to pass the database connection requirements
-as a cluster secret, as well as the contents of the service account. For example:
 
 ## Useful Commands
 
@@ -104,7 +95,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 Don't forget to give the project a star! Thanks again!
 
 ## License
-Distributed under the MIT License. See `LICENSE` doc for more information.
+Distributed under the GPL-3.0-or-later License. See `LICENSE` doc for more information.
 
 
 ## Contact
@@ -112,7 +103,7 @@ Alvaro U. Bravo - [alvaroubravo@gmail.com](mailto:alvaroubravo@gmail.com); [alva
 
 Project Links:
 * [earthgazer - GitHub](https://github.com/aubravo/earthgazer)
-* [earthgazer - UPAEP](https://upaep.mx/gxiba/)
+* [Gxiba - UPAEP](https://upaep.mx/gxiba/)
 
 ## Acknowledgments
 
