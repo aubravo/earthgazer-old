@@ -9,14 +9,23 @@
         {
             "previewLimit": 50,
             "driver": "SQLite",
-            "name": "earthgazer",
-            "database": "${workspaceFolder:earthgazer}/eg.db"
+            "name": "old_earthgazer",
+            "database": "${workspaceFolder:earthgazer}/db.sqlite3"
         },
         {
             "previewLimit": 50,
             "driver": "SQLite",
-            "name": "old_earthgazer",
-            "database": "${workspaceFolder:earthgazer}/db.sqlite3"
+            "name": "earthgazer",
+            "database": "C:\\Users\\alvar\\.eg\\eg.db"
         }
-    ]
+    ],
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+          "source": "PowerShell",
+          "icon": "terminal-powershell",
+          "args": ["-ExecutionPolicy", "Bypass"]
+        }
+      },
+      "terminal.integrated.defaultProfile.windows": "PowerShell",
+      
 }

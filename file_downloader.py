@@ -14,17 +14,149 @@ from PIL import Image
 from google.api_core import retry
 from google.cloud import bigquery, storage
 from google.oauth2 import service_account
-from pydantic import AnyUrl, Field
+from pydantic import Field, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound, IntegrityError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from db_config import Image, Location, Band, Base
 from exceptions import MissingBandError, DuplicateBandError, ConfigFileNotFound
 
 logger = logging.getLogger(__name__)
 sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('queries/'))
+
+import datetime
+import enum
+
+from typing import Optional, List
+from sqlalchemy import String, Enum, Integer, Column, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, Mapped, mapped_column, relationship, Session
+
+
+class Base(DeclarativeBase, MappedAsDataclass):
+    pass
+
+class RadiometricMeasure(enum.Enum):
+    RADIANCE = "RADIANCE"
+    REFLECTANCE = "REFLECTANCE"
+    DN = "DN"
+
+
+class AtmosphericReferenceLevel(enum.Enum):
+    TOA = "TOA"
+    BOA = "BOA"
+
+
+class BandStatus(enum.Enum):
+    FOUND = "FOUND"
+    STORING_BAND = "STORING_BAND"
+    STORED_BAND = "STORED_BAND"
+    BAND_STORAGE_FAILED = "BAND_STORAGE_FAILED"
+
+
+class CaptureData(Base):
+    __tablename__ = "capture_data"
+    
+    main_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    secondary_id: Mapped[str] = mapped_column(String(30))
+    mission_id: Mapped[str] = mapped_column(String(30))
+    sensing_time: Mapped[DateTime] = mapped_column(DateTime)
+    north_lat: Mapped[float]
+    south_lat: Mapped[float]
+    west_lon: Mapped[float]
+    east_lon: Mapped[float]
+    base_url: Mapped[str] = mapped_column(String(120))
+    cloud_cover: Mapped[Optional[float]] = None
+    radiometric_measure: Mapped[Optional[str]]  = mapped_column(Enum(RadiometricMeasure), default=None)
+    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), default=None)
+    mgrs_tile: Mapped[Optional[str]] = mapped_column(String(30), default=None)
+    wrs_path: Mapped[Optional[int]] = mapped_column(Integer, default=None)
+    wrs_row: Mapped[Optional[int]] = mapped_column(Integer, default=None)
+    data_type: Mapped[Optional[str]] = mapped_column(String(30), default=None)
+    
+
+    # Relationships
+    bands: Mapped[Optional[List["Band"]]] = relationship("Band", default_factory=list)
+    composites: Mapped[Optional[List["Composite"]]] = relationship("Composite", default_factory=list)
+    
+    # Templated columns
+    added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
+    last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+    
+    @classmethod
+    def get_by_main_id(cls, session: Session, main_id: str) -> "CaptureData":
+        return session.query(cls).filter(cls.main_id == main_id).first()
+
+    def add_band(self, band: "Band") -> None:
+        self.bands.append(band)
+
+    def add_composite(self, composite: "Composite") -> None:
+        self.composites.append(composite)
+
+
+class Band(Base):
+    __tablename__ = "band"
+    
+    image_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    main_id: Mapped[str] = mapped_column(ForeignKey("capture_data.main_id"), primary_key=True)
+    band_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    image_url: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(Enum(BandStatus))
+    preprocessed_bands: Mapped[List["PreprocessedBand"]] = relationship("PreprocessedBand")
+
+    # Templated columns
+    added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
+    last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+
+
+class Composite(Base):
+    __tablename__ = "generated_image"
+
+    main_id: Mapped[str] = mapped_column(ForeignKey("capture_data.main_id"), primary_key=True)
+    composite_id: Mapped[str] = mapped_column(String(30), primary_key=True) 
+    generated_image_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    local_storage_path: Mapped[str] = mapped_column(String(250))
+    remote_storage_path: Mapped[str] = mapped_column(String(250))
+    
+    # Templated columns
+    added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
+    last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+
+
+class PreprocessedBand(Base):
+    __tablename__ = "preprocessed_band"
+
+    main_id: Mapped[str] = mapped_column(ForeignKey("capture_data.main_id"), primary_key=True)
+    band_id: Mapped[str] = mapped_column(ForeignKey("band.band_id"), primary_key=True)
+    preprocessing_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    local_storage_path: Mapped[Optional[str]] = mapped_column(String(250))
+    remote_storage_path: Mapped[Optional[str]] = mapped_column(String(250))
+
+    added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
+    last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+
+
+class Location(Base):
+    __tablename__ = "location"
+    
+    location_name: Mapped[str] = mapped_column(String(50))
+    location_description: Mapped[str] = mapped_column(String(500))
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    location_id: int = Column(Integer, primary_key=True, autoincrement=True)
+    monitoring_period_start: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.datetime.fromisoformat('1950-01-01'))
+    monitoring_period_end: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.date.fromisoformat('2050-12-12'))
+
+    # Templated columns
+    added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
+    last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+
 
 
 class EGConfig(BaseSettings):
@@ -40,8 +172,7 @@ class EGConfig(BaseSettings):
     normalize_dataset: bool = False
     track_images: bool = False
 
-    # TODO: refactor storage to use driver pattern
-    # Download/Storage
+    # Data
     force_download: bool = False
     storage_type: str = Field(default='local')
     local_storage_base_path: str = f'{local_path}/storage'
@@ -58,10 +189,6 @@ class EGConfig(BaseSettings):
     database_type: ClassVar[str] = str(database_url).split(':')[0]
     database_engine_echo: bool = False
     
-    # Locations
-    load_locations_from_path: bool = False
-    locations_path: str = f'{local_path}/locations'
-
     # Platforms
     monitored_platforms: list = ['LANDSAT_8', 'SENTINEL_2']
     
@@ -96,9 +223,7 @@ class EGProcessor:
         logger.debug(dump)
 
         Path(self.env.local_path).mkdir(parents=True, exist_ok=True)
-        Path(self.env.locations_path).mkdir(parents=True, exist_ok=True)
         Path(self.env.local_storage_base_path).mkdir(parents=True, exist_ok=True)
-        shutil.copyfile('test/popocatepetl.json', f'{self.env.locations_path}/popocatepetl.json')
 
         def load_config(config_file: str) -> dict:
             config_path = os.path.join('config', config_file + '.json')
@@ -128,40 +253,38 @@ class EGProcessor:
             project=service_account_credentials.project_id
         )
 
+        self.retry_methodology = retry.Retry(
+            initial=self.env.google_storage_downloader_retry_inital,
+            maximum=self.env.google_storage_downloader_retry_maximum,
+            multiplier=self.env.google_storage_downloader_retry_multiplier,
+            timeout=self.env.google_storage_downloader_retry_timeout
+        )
+
         engine = create_engine(str(self.env.database_url), echo=self.env.database_engine_echo)
         Base.metadata.create_all(engine)
         self.session_factory = sessionmaker(bind=engine)
+
+    def add_location(self, **kwargs):
         session = scoped_session(self.session_factory)
         try:
-            if self.env.load_locations_from_path:
-                for file in os.listdir(self.env.locations_path):
-                    logger.debug('Loading location from path')
-                    if file.endswith('.json'):
-                        logger.debug(f'Found {file}')
-                        with open(os.path.join(self.env.locations_path, file), 'r') as f:
-                            loc = json.load(f)
-                            loc.update({'start_date': datetime.date.fromisoformat(loc['start_date']),
-                                        'end_date': datetime.date.fromisoformat(loc['end_date'])})
-                            loc['location_id'] = session.query(Location).count() + 1
-                            logger.debug(f'Adding {loc}')
-                            try:
-                                session.add(Location(**loc))
-                                session.commit()
-                            except IntegrityError:
-                                logger.warning(f'Location {loc["location_name"]} already exists')
-                                logger.warning('Rolling back and proceeding.')
-                                session.rollback()
-                                continue
+            location_data = kwargs
+            for key in location_data:
+                if 'monitoring_period' in key:
+                    location_data[key] = datetime.date.fromisoformat(location_data[key])
+            location_data['location_id'] = session.query(func.coalesce(func.max(Location.location_id),0)).scalar() + 1
+            location = Location(**location_data)
+            session.add(location)
+            session.commit()
         finally:
             session.close()
-
+        
     def update_data(self):
         session = scoped_session(self.session_factory)
         logger.info('Beginning data update process')
         try:
             for platform_config in self.bigquery_platforms_config:
                 logger.info(f'Updating {platform_config.capitalize()} platform data')
-                for location in session.query(Location).where(Location.active):
+                for location in session.query(Location).where(Location.active == True):
                     logger.info(f'Updating {location.location_name.capitalize()} location data')
                     platform_query_params = self.bigquery_platforms_config[platform_config]
                     platform_query_params.update(
@@ -169,44 +292,35 @@ class EGProcessor:
                             'lat': location.latitude,
                             'lon': location.longitude,
                             'start_date': location.monitoring_period_start,
-                            'end_date': location.monitoring_period_start
+                            'end_date': location.monitoring_period_end
                         }
                     )
                     platform_query = sql_environment.get_template('bigquery_get_locations.sql').render(**platform_query_params)
+                    logger.info(platform_query)
                     for result in self.bigquery_client.query(platform_query):
-                        if session.query(ImageMetadata).where(ImageMetadata.main_id == result["main_id"]).count() > 0:
+                        if session.query(CaptureData).where(CaptureData.main_id == result["main_id"]).count() > 0:
                             logger.debug(f'{result["main_id"]} already in database')
                             continue
                         logger.debug(f'Adding {result["main_id"]} to database')
-                        session.add(ImageMetadata(
-                            main_id=result["main_id"],
-                            secondary_id=result["secondary_id"],
-                            mission_id=result["mission_id"],
-                            sensing_time=result["sensing_time"],
-                            cloud_cover=result["cloud_cover"],
-                            north_lat=result["north_lat"],
-                            south_lat=result["south_lat"],
-                            west_lon=result["west_lon"],
-                            east_lon=result["east_lon"],
-                            base_url=result["base_url"],
-                            status='metadata_loaded'
+                        
+                        session.add(CaptureData(
+                            **result
                         ))
                         session.commit()
         finally:
             session.close()
 
+
     def download_band_images(self):
+        
+        
+        
         def parse_url(url):
             re.compile(r'gs://(?P<bucket_name>[^/]+)/(?P<blobs_path_name>.+)')
             return re.match(r'gs://(?P<bucket_name>[^/]+)/(?P<blobs_path_name>.+)', url).groupdict()
 
         logger.info('Beginning band images download process')
-        retry_methodology = retry.Retry(
-            initial=self.env.google_storage_downloader_retry_inital,
-            maximum=self.env.google_storage_downloader_retry_maximum,
-            multiplier=self.env.google_storage_downloader_retry_multiplier,
-            timeout=self.env.google_storage_downloader_retry_timeout
-        )
+        
         valid_status = ['metadata_loaded']
         if self.env.force_download:
             valid_status.append('downloading')
@@ -240,7 +354,7 @@ class EGProcessor:
                     f"^(?!.*\\b(?:{exclude_folders})\\b).*(_({'|'.join(bands)})\\.({supported_extensions})).*$"
                 )
                 hits = []
-                for blob in bucket.list_blobs(prefix=parsed_url['blobs_path_name'], retry=retry_methodology):
+                for blob in bucket.list_blobs(prefix=parsed_url['blobs_path_name'], retry=self.retry_methodology):
                     if detection_re.search(blob.name):
                         logger.debug(f'Found {blob.name}')
                         hits.append(blob)
@@ -382,4 +496,10 @@ def main():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
-    main()
+    eg = EGProcessor()
+    if False:
+        import os
+        with open(os.path.curdir + '/test/popocatepetl.json', 'r') as f:
+            test = json.load(f)
+        eg.add_location(**test)
+    eg.update_data()
