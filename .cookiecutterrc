@@ -1,0 +1,61 @@
+# This file exists so you can easily regenerate your project.
+#
+# `cookiepatcher` is a convenient shim around `cookiecutter`
+# for regenerating projects (it will generate a .cookiecutterrc
+# automatically for any template). To use it:
+#
+#    pip install cookiepatcher
+#    cookiepatcher gh:ionelmc/cookiecutter-pylibrary earthgazer
+#
+# See:
+#    https://pypi.org/project/cookiepatcher
+#
+# Alternatively, you can run:
+#
+#    cookiecutter --overwrite-if-exists --config-file=earthgazer/.cookiecutterrc gh:ionelmc/cookiecutter-pylibrary
+
+default_context:
+    allow_tests_inside_package: "no"
+    c_extension_function: "longest"
+    c_extension_module: "_earthgazer"
+    c_extension_optional: "no"
+    c_extension_support: "no"
+    codacy: "yes"
+    codacy_projectid: "d7fd22bea5cf472f8acd1b359b416603"
+    codeclimate: "no"
+    codecov: "yes"
+    command_line_interface: "click"
+    command_line_interface_bin_name: "earthgazer"
+    coveralls: "no"
+    distribution_name: "earthgazer"
+    email: "alvaroubravo@gmail.com"
+    formatter_quote_style: "double"
+    full_name: "Alvaro Bravo"
+    github_actions: "yes"
+    github_actions_osx: "no"
+    github_actions_windows: "no"
+    license: "GNU Lesser General Public License v3 or later (LGPLv3+)"
+    package_name: "earthgazer"
+    pre_commit: "yes"
+    project_name: "earthgazer"
+    project_short_description: "Satellite image processing pipeline"
+    pypi_badge: "yes"
+    pypi_disable_upload: "no"
+    release_date: "today"
+    repo_hosting: "github.com"
+    repo_hosting_domain: "github.com"
+    repo_main_branch: "main"
+    repo_name: "earthgazer"
+    repo_username: "aubravo"
+    scrutinizer: "no"
+    setup_py_uses_setuptools_scm: "no"
+    sphinx_docs: "yes"
+    sphinx_docs_hosting: "https://earthgazer.readthedocs.io/"
+    sphinx_doctest: "no"
+    sphinx_theme: "sphinx-rtd-theme"
+    test_matrix_separate_coverage: "no"
+    version: "0.2.1"
+    version_manager: "bump2version"
+    website: "mxdata.dev"
+    year_from: "2021"
+    year_to: "2023"

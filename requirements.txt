@@ -9,3 +9,7 @@ numpy
 matplotlib
 pillow
 pydantic-settings
+fsspec
+gcsfs
+dask
+satpy
