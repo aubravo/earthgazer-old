@@ -1,9 +1,0 @@
-{
-  "location_name": "Popocatepetl",
-  "location_description": "An active volcano in Mexico",
-  "latitude": 19.0234977,
-  "longitude": -98.624027,
-  "monitoring_period_start": "2010-01-01",
-  "monitoring_period_end": "2025-01-01",
-  "active": true
-}
