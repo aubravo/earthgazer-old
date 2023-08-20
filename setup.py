@@ -38,10 +38,6 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
@@ -59,10 +55,24 @@ setup(
     keywords=[
         # eg: "keyword1", "keyword2", "keyword3",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.11",
     install_requires=[
         "click",
-        # eg: "aspectlib==1.1.1", "six>=1.7",
+        "google-cloud-bigquery",
+        "google-cloud-storage",
+        "pydantic",
+        "redis-om",
+        "jinja2",
+        "sqlalchemy",
+        "rasterio",
+        "numpy",
+        "matplotlib",
+        "pillow",
+        "pydantic-settings",
+        "fsspec",
+        "gcsfs"
+        # "dask",
+        # "satpy",
     ],
     extras_require={
         # eg:

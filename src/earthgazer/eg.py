@@ -44,7 +44,7 @@ import earthgazer
 from earthgazer.exceptions import ConfigFileNotFound
 
 logger = logging.getLogger(__name__)
-sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader("queries/"))
+sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader("queries/"), autoescape=True)
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
@@ -151,7 +151,7 @@ class EGConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="eg_")
 
     # Local environment
-    local_path: str = f'{os.path.expanduser("~")}/.eg'.replace("\\", "/")
+    local_path: str = f'{Path("~/.eg").expanduser()}'.replace("\\", "/")
 
     # Pipeline steps
     update_data: bool = False
@@ -178,7 +178,7 @@ class EGConfig(BaseSettings):
     database_engine_echo: bool = False
 
     # Platforms
-    monitored_platforms: list = ["LANDSAT_8", "SENTINEL_2"]
+    monitored_platforms: ClassVar[list[str]] = ["LANDSAT_8", "SENTINEL_2"]
 
 
 class BandProcessor:
@@ -196,33 +196,33 @@ class BandProcessor:
 
 class EGProcessor:
     def __init__(self):
-        welcome_message = f'\n{earthgazer.__logo__}\n{"v" + earthgazer.__version__:>35}'
+        welcome_message = f"\n{earthgazer.__logo__}\n{'v' + earthgazer.__version__:>35}"
         logger.info(welcome_message)
 
         logger.debug("Loading configuration...")
         self.env = EGConfig()
         dump = "\n"
         for key, value in self.env.model_dump().items():
-            dump += f'   {key + ":": <45} {value}\n'
+            dump += f"   {key + ':': <45} {value}\n"
         logger.debug(dump)
 
         Path(self.env.local_path).mkdir(parents=True, exist_ok=True)
         Path(self.env.local_storage_base_path).mkdir(parents=True, exist_ok=True)
 
         def load_config(config_file: str) -> dict:
-            config_path = os.path.join("config", config_file + ".json")
+            config_path = Path(f"config/{config_file}.json")
             try:
-                with open(config_path) as f:
+                with config_path.open() as f:
                     return json.load(f)
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 logger.error(f"{config_file} file not found")
-                raise ConfigFileNotFound(f"{config_file} file not found")
+                raise ConfigFileNotFound(f"{config_file} file not found") from err
 
         self.bigquery_platforms_config = load_config("bigquery_platforms")
         self.bands_definition = load_config("bands")
         self.composites_definition = load_config("composites")
 
-        with open(self.env.google_credentials_file_path) as f:
+        with Path(self.env.google_credentials_file_path).open() as f:
             service_account_credentials = service_account.Credentials.from_service_account_info(
                 json.load(f), scopes=["https://www.googleapis.com/auth/cloud-platform"]
             )
@@ -298,9 +298,9 @@ class EGProcessor:
                     logger.info(platform_query)
                     for result in self.bigquery_client.query(platform_query):
                         if session.query(CaptureData).where(CaptureData.main_id == result["main_id"]).count() > 0:
-                            logger.debug(f'{result["main_id"]} already in database')
+                            logger.debug(f"{result['main_id']} already in database")
                             continue
-                        logger.debug(f'Adding {result["main_id"]} to database')
+                        logger.debug(f"Adding {result['main_id']} to database")
                         session.add(CaptureData(**result))
                         session.commit()
         finally:
@@ -376,9 +376,9 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] - %(asctime)s - %(message)s")
     eg = EGProcessor()
     if False:
-        import os
+        test_location = Path(f"{os.path.curdir}/test/popocatepetl.json")
 
-        with open(os.path.curdir + "/test/popocatepetl.json") as f:
+        with test_location.open() as f:
             test = json.load(f)
         eg.add_location(**test)
         eg.update_bigquery_data()

@@ -46,13 +46,11 @@ def records(ctx):
 def add(ctx, location_name, latitude, longitude, from_date, to_date):
     eg = EGProcessor()
     eg.add_location(
-        **{
-            "location_name": location_name,
-            "latitude": latitude,
-            "longitude": longitude,
-            "monitoring_period_start": from_date,
-            "monitoring_period_end": to_date,
-        }
+        location_name=location_name,
+        latitude=latitude,
+        longitude=longitude,
+        monitoring_period_start=from_date,
+        monitoring_period_end=to_date,
     )
 
 
