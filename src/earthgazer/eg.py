@@ -144,7 +144,8 @@ class Location(Base):
     schema = "earthgazer"
 
     def __repr__(self) -> str:
-        return f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | {'active' if self.active else 'inactive': >8} | {self.monitoring_period_start} | {self.monitoring_period_end}"
+        return f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | {'active' if self.active else 'inactive': >8} | \
+        {self.monitoring_period_start} | {self.monitoring_period_end}"
 
 
 class EGConfig(BaseSettings):
@@ -334,7 +335,7 @@ class EGProcessor:
                     for blob in self.gcs_storage_client.find(f"{captured_data_element.base_url}/"):
                         if test := blob_finder.search(blob):
                             logger.debug(f"Found file with matching name requirements: {blob}")
-                            file_id, format = test.groupdict()["file_id"], test.groupdict()["format"]
+                            file_id, file_format = test.groupdict()["file_id"], test.groupdict()["format"]
                             logger.debug(f"Found {file_id} {format} for {captured_data_element.main_id}")
                             if (
                                 session.query(SourceFile)
