@@ -29,7 +29,7 @@ def locations():
 
 @locations.command(help="List locations.")
 @click.pass_context
-def list(ctx):
+def records(ctx):
     eg = EGProcessor()
     click.echo(f"  ID | {'Location Name':25} | {'Latitude':>11} | {'Longitude':>11} | {'status':>8} | {'Start':10} | {'End':10}")
     for _ in eg.list_locations():
