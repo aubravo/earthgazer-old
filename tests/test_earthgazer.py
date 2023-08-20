@@ -1,6 +1,5 @@
 from click.testing import CliRunner
 
-
 from earthgazer.cli import main
 
 
