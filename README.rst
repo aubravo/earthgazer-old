@@ -24,13 +24,14 @@ Overview
     :alt: GitHub Actions Build Status
     :target: https://github.com/aubravo/earthgazer/actions
 
-.. |codecov| image:: https://codecov.io/gh/aubravo/earthgazer/branch/main/graphs/badge.svg?branch=main
+.. |codecov| image:: https://codecov.io/github/aubravo/earthgazer/graph/badge.svg?token=N96UW9UMJ8
     :alt: Coverage Status
     :target: https://app.codecov.io/github/aubravo/earthgazer
 
 .. |codacy| image:: https://img.shields.io/codacy/grade/d7fd22bea5cf472f8acd1b359b416603.svg
-    :target: https://www.codacy.com/app/aubravo/earthgazer
+    :target: https://app.codacy.com/gh/aubravo/earthgazer
     :alt: Codacy Code Quality Status
+
 
 .. |version| image:: https://img.shields.io/pypi/v/earthgazer.svg
     :alt: PyPI Package latest release

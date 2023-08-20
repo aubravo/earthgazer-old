@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import re
 from pathlib import Path
 
@@ -32,17 +31,12 @@ setup(
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)"
-        "Operating System :: Unix",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)" "Operating System :: Unix",
         "Operating System :: POSIX",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
@@ -60,10 +54,24 @@ setup(
     keywords=[
         # eg: "keyword1", "keyword2", "keyword3",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.11",
     install_requires=[
         "click",
-        # eg: "aspectlib==1.1.1", "six>=1.7",
+        "google-cloud-bigquery",
+        "google-cloud-storage",
+        "pydantic",
+        "redis-om",
+        "jinja2",
+        "sqlalchemy",
+        "rasterio",
+        "numpy",
+        "matplotlib",
+        "pillow",
+        "pydantic-settings",
+        "fsspec",
+        "gcsfs"
+        # "dask",
+        # "satpy",
     ],
     extras_require={
         # eg:
