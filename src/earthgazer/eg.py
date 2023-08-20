@@ -144,8 +144,10 @@ class Location(Base):
     schema = "earthgazer"
 
     def __repr__(self) -> str:
-        return f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | {'active' if self.active else 'inactive': >8} | \
-        {self.monitoring_period_start} | {self.monitoring_period_end}"
+        _ = f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | " + \
+            f"{'active' if self.active else 'inactive': >8} | " + \
+            f"{self.monitoring_period_start} | {self.monitoring_period_end}"
+        return _
 
 
 class EGConfig(BaseSettings):
