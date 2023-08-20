@@ -1,23 +1,51 @@
 """
 Module that contains the command line app.
-
-Why does this file exist, and why not put this in __main__?
-
-  You might be tempted to import things from __main__ later, but that will cause
-  problems: the code will get executed twice:
-
-  - When you run `python -mearthgazer` python will execute
-    ``__main__.py`` as a script. That means there will not be any
-    ``earthgazer.__main__`` in ``sys.modules``.
-  - When you import __main__ it will get executed again (as a module) because
-    there"s no ``earthgazer.__main__`` in ``sys.modules``.
-
-  Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
 """
 import click
+from earthgazer import __version__, __logo__
+from earthgazer.eg import EGProcessor
 
+@click.group(invoke_without_command=True)
+@click.option('-v', '--version', is_flag=True, help='Prints the current version.')
+@click.option('-d', '--debug', is_flag=True, help='Prints the current version.')
+@click.pass_context
+def main(ctx, version, debug):
+    ctx.ensure_object(dict)
+    if version:
+        click.echo(__version__)
+        return
+    if debug:
+        ctx.obj['DEBUG'] = True
 
-@click.command()
-@click.argument("names", nargs=-1)
-def main(names):
-    click.echo(repr(names))
+@main.group()
+def locations():
+    """
+    Location commands.
+    """
+    pass
+
+@locations.command(help='List locations.')
+@click.pass_context
+def list(ctx):
+    eg = EGProcessor()
+    click.echo(f"  ID | {'Location Name':25} | {'Latitude':>11} | {'Longitude':>11} | {'status':>8} | {'Start':10} | {'End':10}")
+    for _ in eg.list_locations():
+        click.echo(_)
+
+@locations.command(help='Add location.')
+@click.argument('location_name')
+@click.argument('latitude', type=float)
+@click.argument('longitude', type=float)
+@click.option('--from', 'from_date', type=click.DateTime())
+@click.option('--to', 'to_date', type=click.DateTime())
+@click.pass_context
+def add(ctx, location_name, latitude, longitude, from_date, to_date):
+    eg = EGProcessor()
+    eg.add_location(**{"location_name": location_name, "latitude": latitude, "longitude": longitude, "monitoring_period_start": from_date, "monitoring_period_end": to_date})
+
+@locations.command(help='Remove location.')
+@click.argument('location_id')
+@click.pass_context
+def drop(ctx, location_id):
+    eg = EGProcessor()
+    eg.drop_location(location_id)

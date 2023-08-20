@@ -23,7 +23,9 @@ from sqlalchemy import create_engine, func, String, Enum, Integer, Column, Float
 from sqlalchemy.orm import scoped_session, sessionmaker, DeclarativeBase, MappedAsDataclass, Mapped, mapped_column, relationship, Session
 from satpy import Scene
 
-from exceptions import ConfigFileNotFound
+import earthgazer
+
+from earthgazer.exceptions import ConfigFileNotFound
 
 logger = logging.getLogger(__name__)
 sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('queries/'))
@@ -113,7 +115,7 @@ class Location(Base):
     __tablename__ = "location"
     
     location_name: Mapped[str] = mapped_column(String(50))
-    location_description: Mapped[str] = mapped_column(String(500))
+    location_description: Mapped[Optional[str]] = mapped_column(String(500))
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -125,6 +127,10 @@ class Location(Base):
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
     schema = "earthgazer"
+
+    def __repr__(self) -> str:
+        active = "active" if self.active else "inactive"
+        return f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | {'active' if self.active else 'inactive': >8} | {self.monitoring_period_start} | {self.monitoring_period_end}"
 
 
 class EGConfig(BaseSettings):
@@ -176,14 +182,7 @@ class BandProcessor:
 
 class EGProcessor:
     def __init__(self):
-        welcome_message = ''
-        with open('static/ascii_logo.txt', 'r', encoding='utf-8') as f:
-            self.logo = f.read()
-            welcome_message += self.logo
-            welcome_message += '\n'
-        with open('static/short_licence_disclaimer.txt', 'r', encoding='utf-8') as f:
-            self.short_licence = f.read()
-            welcome_message += self.short_licence
+        welcome_message = f'\n{earthgazer.__logo__}\n{"v" + earthgazer.__version__:>35}'
         logger.info(welcome_message)
 
         logger.debug('Loading configuration...')
@@ -243,10 +242,27 @@ class EGProcessor:
             location_data = kwargs
             for key in location_data:
                 if 'monitoring_period' in key:
-                    location_data[key] = datetime.date.fromisoformat(location_data[key])
+                    if isinstance(location_data[key], str):
+                        location_data[key] = datetime.date.fromisoformat(location_data[key])
+            if 'location_description' not in location_data:
+                location_data['location_description'] = ""
             location_data['location_id'] = session.query(func.coalesce(func.max(Location.location_id),0)).scalar() + 1
             location = Location(**location_data)
             session.add(location)
+            session.commit()
+        finally:
+            session.close()
+    def list_locations(self):
+        session = scoped_session(self.session_factory)
+        try:
+            return session.query(Location).all()
+        finally:
+            session.close()
+    
+    def drop_location(self, location_id):
+        session = scoped_session(self.session_factory)
+        try:
+            session.query(Location).filter(Location.location_id == location_id).delete()
             session.commit()
         finally:
             session.close()
@@ -350,4 +366,4 @@ if __name__ == '__main__':
         eg.add_location(**test)
         eg.update_bigquery_data()
         eg.get_source_file_data()
-    eg.backup_images()
+        eg.backup_images()
