@@ -336,7 +336,7 @@ class EGProcessor:
                         if test := blob_finder.search(blob):
                             logger.debug(f"Found file with matching name requirements: {blob}")
                             file_id, file_format = test.groupdict()["file_id"], test.groupdict()["format"]
-                            logger.debug(f"Found {file_id} {format} for {captured_data_element.main_id}")
+                            logger.debug(f"Found {file_id} {file_format} for {captured_data_element.main_id}")
                             if (
                                 session.query(SourceFile)
                                 .where(SourceFile.main_id == captured_data_element.main_id)
@@ -344,10 +344,10 @@ class EGProcessor:
                                 .count()
                                 > 0
                             ):
-                                logger.warning(f"{file_id} {format} for {captured_data_element.main_id} already in database")
+                                logger.warning(f"{file_id} {file_format} for {captured_data_element.main_id} already in database")
                                 continue
                             source_file = SourceFile(
-                                main_id=captured_data_element.main_id, file_id=file_id, format=format, source_image_url=f"gs://{blob}"
+                                main_id=captured_data_element.main_id, file_id=file_id, format=file_format, source_image_url=f"gs://{blob}"
                             )
                             captured_data_element.add_source_file(source_file)
                             session.commit()
