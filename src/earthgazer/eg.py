@@ -44,7 +44,9 @@ import earthgazer
 from earthgazer.exceptions import ConfigFileNotFound
 
 logger = logging.getLogger(__name__)
-sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader("queries/"), autoescape=True)
+logger.setLevel(logging.INFO)
+queries_dir = Path(__file__).parent.parent / "queries"
+sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir, encoding='utf-8'), autoescape=True)
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
@@ -200,7 +202,7 @@ class BandProcessor:
 class EGProcessor:
     def __init__(self):
         welcome_message = f"\n{earthgazer.__logo__}\n{'v' + earthgazer.__version__:>35}"
-        logger.info(welcome_message)
+        logger.debug(welcome_message)
 
         logger.debug("Loading configuration...")
         self.env = EGConfig()
@@ -214,18 +216,22 @@ class EGProcessor:
 
         def load_config(config_file: str) -> dict:
             config_path = Path(f"config/{config_file}.json")
+            logger.debug(f"Loading {config_file} config from {config_path.absolute()}")
             try:
-                with config_path.open() as f:
+                with config_path.open(encoding='utf-8') as f:
                     return json.load(f)
             except FileNotFoundError as err:
                 logger.error(f"{config_file} file not found")
                 raise ConfigFileNotFound(f"{config_file} file not found") from err
 
         self.bigquery_platforms_config = load_config("bigquery_platforms")
+        logger.debug(f'BigQuery platforms config: {self.bigquery_platforms_config}')
         self.bands_definition = load_config("bands")
+        logger.debug(f'Bands config: {self.bands_definition}')
         self.composites_definition = load_config("composites")
+        logger.debug(f'Composites config: {self.composites_definition}')
 
-        with Path(self.env.google_credentials_file_path).open() as f:
+        with Path(self.env.google_credentials_file_path).open(encoding='utf-8') as f:
             service_account_credentials = service_account.Credentials.from_service_account_info(
                 json.load(f), scopes=["https://www.googleapis.com/auth/cloud-platform"]
             )
@@ -286,7 +292,8 @@ class EGProcessor:
         try:
             for platform_config in self.bigquery_platforms_config:
                 logger.info(f"Updating {platform_config.capitalize()} platform data")
-                for location in session.query(Location).where(Location.active is True):
+                print(session.query(Location).where(Location.active))
+                for location in session.query(Location).where(Location.active):
                     logger.info(f"Updating {location.location_name.capitalize()} location data")
                     platform_query_params = self.bigquery_platforms_config[platform_config]
                     platform_query_params.update(
@@ -297,8 +304,9 @@ class EGProcessor:
                             "end_date": location.monitoring_period_end,
                         }
                     )
+                    logger.debug(f"Query parameters: {platform_query_params}")
                     platform_query = sql_environment.get_template("bigquery_get_locations.sql").render(**platform_query_params)
-                    logger.info(platform_query)
+                    logger.debug(platform_query)
                     for result in self.bigquery_client.query(platform_query):
                         if session.query(CaptureData).where(CaptureData.main_id == result["main_id"]).count() > 0:
                             logger.debug(f"{result['main_id']} already in database")
@@ -381,7 +389,7 @@ if __name__ == "__main__":
     if False:
         test_location = Path(f"{os.path.curdir}/test/popocatepetl.json")
 
-        with test_location.open() as f:
+        with test_location.open(encoding='utf-8') as f:
             test = json.load(f)
         eg.add_location(**test)
         eg.update_bigquery_data()

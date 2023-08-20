@@ -69,7 +69,8 @@ setup(
         "pillow",
         "pydantic-settings",
         "fsspec",
-        "gcsfs"
+        "gcsfs",
+        "click_aliases"
         # "dask",
         # "satpy",
     ],

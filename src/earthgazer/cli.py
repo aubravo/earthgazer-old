@@ -1,10 +1,16 @@
 """
 Module that contains the command line app.
 """
+import logging
+
 import click
 
 from earthgazer import __version__
 from earthgazer.eg import EGProcessor
+from click_aliases import ClickAliasedGroup
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @click.group(invoke_without_command=True)
@@ -17,17 +23,18 @@ def main(ctx, version, debug):
         click.echo(__version__)
         return
     if debug:
+        logger.setLevel(logging.DEBUG)
         ctx.obj["DEBUG"] = True
 
 
-@main.group()
+@main.group(cls=ClickAliasedGroup)
 def locations():
     """
     Location commands.
     """
 
 
-@locations.command(help="List locations.")
+@locations.command(help="List locations.", aliases=["ls", "list"])
 @click.pass_context
 def records(ctx):
     eg = EGProcessor()
@@ -36,7 +43,7 @@ def records(ctx):
         click.echo(_)
 
 
-@locations.command(help="Add location.")
+@locations.command(help="Add location.", aliases=["create", "new", "mk", "make"])
 @click.argument("location_name")
 @click.argument("latitude", type=float)
 @click.argument("longitude", type=float)
@@ -54,9 +61,36 @@ def add(ctx, location_name, latitude, longitude, from_date, to_date):
     )
 
 
-@locations.command(help="Remove location.")
+@locations.command(help="Remove location.", aliases=["rm", "delete"])
 @click.argument("location_id")
 @click.pass_context
 def drop(ctx, location_id):
     eg = EGProcessor()
     eg.drop_location(location_id)
+
+
+@main.group(cls=ClickAliasedGroup)
+def pipeline():
+    """
+    Pipeline commands.
+    """
+
+@pipeline.command(help="Query bigquery to get metadata for all images in a location.", aliases=["bigquery", "update-data"])
+@click.pass_context
+def update_bigquery_data(ctx):
+    logger.setLevel(logging.DEBUG)
+    eg = EGProcessor()
+    eg.update_bigquery_data()
+
+@pipeline.command(help="Analyze image location and extract metadata before confirming loading.", aliases=["analyze", "extract"])
+@click.pass_context
+def get_source_file_data(ctx):
+    eg = EGProcessor()
+    eg.get_source_file_data()
+
+
+@pipeline.command(help="Backup missing images into storage filesystem.", aliases=["load", "download"])
+@click.pass_context
+def backup_images(ctx):
+    eg = EGProcessor()
+    eg.backup_images()
