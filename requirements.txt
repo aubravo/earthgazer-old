@@ -11,5 +11,6 @@ pillow
 pydantic-settings
 fsspec
 gcsfs
-dask
-satpy
+click_aliases
+# dask
+# satpy
