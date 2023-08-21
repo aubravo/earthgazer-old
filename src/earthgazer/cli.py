@@ -4,10 +4,10 @@ Module that contains the command line app.
 import logging
 
 import click
+from click_aliases import ClickAliasedGroup
 
 from earthgazer import __version__
 from earthgazer.eg import EGProcessor
-from click_aliases import ClickAliasedGroup
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -75,12 +75,14 @@ def pipeline():
     Pipeline commands.
     """
 
+
 @pipeline.command(help="Query bigquery to get metadata for all images in a location.", aliases=["bigquery", "update-data"])
 @click.pass_context
 def update_bigquery_data(ctx):
     logger.setLevel(logging.DEBUG)
     eg = EGProcessor()
     eg.update_bigquery_data()
+
 
 @pipeline.command(help="Analyze image location and extract metadata before confirming loading.", aliases=["analyze", "extract"])
 @click.pass_context

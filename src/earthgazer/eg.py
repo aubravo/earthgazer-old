@@ -46,7 +46,7 @@ from earthgazer.exceptions import ConfigFileNotFound
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 queries_dir = Path(__file__).parent.parent / "queries"
-sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir, encoding='utf-8'), autoescape=True)
+sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir, encoding="utf-8"), autoescape=True)
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
@@ -146,9 +146,11 @@ class Location(Base):
     schema = "earthgazer"
 
     def __repr__(self) -> str:
-        _ = f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | " + \
-            f"{'active' if self.active else 'inactive': >8} | " + \
-            f"{self.monitoring_period_start} | {self.monitoring_period_end}"
+        _ = (
+            f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | "
+            + f"{'active' if self.active else 'inactive': >8} | "
+            + f"{self.monitoring_period_start} | {self.monitoring_period_end}"
+        )
         return _
 
 
@@ -218,20 +220,20 @@ class EGProcessor:
             config_path = Path(f"config/{config_file}.json")
             logger.debug(f"Loading {config_file} config from {config_path.absolute()}")
             try:
-                with config_path.open(encoding='utf-8') as f:
+                with config_path.open(encoding="utf-8") as f:
                     return json.load(f)
             except FileNotFoundError as err:
                 logger.error(f"{config_file} file not found")
                 raise ConfigFileNotFound(f"{config_file} file not found") from err
 
         self.bigquery_platforms_config = load_config("bigquery_platforms")
-        logger.debug(f'BigQuery platforms config: {self.bigquery_platforms_config}')
+        logger.debug(f"BigQuery platforms config: {self.bigquery_platforms_config}")
         self.bands_definition = load_config("bands")
-        logger.debug(f'Bands config: {self.bands_definition}')
+        logger.debug(f"Bands config: {self.bands_definition}")
         self.composites_definition = load_config("composites")
-        logger.debug(f'Composites config: {self.composites_definition}')
+        logger.debug(f"Composites config: {self.composites_definition}")
 
-        with Path(self.env.google_credentials_file_path).open(encoding='utf-8') as f:
+        with Path(self.env.google_credentials_file_path).open(encoding="utf-8") as f:
             service_account_credentials = service_account.Credentials.from_service_account_info(
                 json.load(f), scopes=["https://www.googleapis.com/auth/cloud-platform"]
             )
@@ -389,7 +391,7 @@ if __name__ == "__main__":
     if False:
         test_location = Path(f"{os.path.curdir}/test/popocatepetl.json")
 
-        with test_location.open(encoding='utf-8') as f:
+        with test_location.open(encoding="utf-8") as f:
             test = json.load(f)
         eg.add_location(**test)
         eg.update_bigquery_data()
