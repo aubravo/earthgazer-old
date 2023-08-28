@@ -66,7 +66,7 @@ setup(
         "pydantic-settings",
         "fsspec",
         "gcsfs",
-        "click_aliases"
+        "click_aliases",
     ],
     extras_require={
         # eg:

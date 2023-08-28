@@ -7,9 +7,9 @@ import click
 from click_aliases import ClickAliasedGroup
 
 from earthgazer import __version__
-from earthgazer.eg import EGProcessor
+from earthgazer.eg import EarthgazerProcessor
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] - %(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -37,7 +37,7 @@ def locations():
 @locations.command(help="List locations.", aliases=["ls", "list"])
 @click.pass_context
 def records(ctx):
-    eg = EGProcessor()
+    eg = EarthgazerProcessor()
     click.echo(f"  ID | {'Location Name':25} | {'Latitude':>11} | {'Longitude':>11} | {'status':>8} | {'Start':10} | {'End':10}")
     for _ in eg.list_locations():
         click.echo(_)
@@ -51,7 +51,7 @@ def records(ctx):
 @click.option("--to", "to_date", type=click.DateTime())
 @click.pass_context
 def add(ctx, location_name, latitude, longitude, from_date, to_date):
-    eg = EGProcessor()
+    eg = EarthgazerProcessor()
     eg.add_location(
         location_name=location_name,
         latitude=latitude,
@@ -65,7 +65,7 @@ def add(ctx, location_name, latitude, longitude, from_date, to_date):
 @click.argument("location_id")
 @click.pass_context
 def drop(ctx, location_id):
-    eg = EGProcessor()
+    eg = EarthgazerProcessor()
     eg.drop_location(location_id)
 
 
@@ -79,20 +79,42 @@ def pipeline():
 @pipeline.command(help="Query bigquery to get metadata for all images in a location.", aliases=["bigquery", "update-data"])
 @click.pass_context
 def update_bigquery_data(ctx):
-    logger.setLevel(logging.DEBUG)
-    eg = EGProcessor()
-    eg.update_bigquery_data()
+    if ctx.obj.get("DEBUG"):
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+    eg = EarthgazerProcessor(logging_level=logging_level)
+    eg.update_bigquery_data(logging_level=logging_level)
 
 
 @pipeline.command(help="Analyze image location and extract metadata before confirming loading.", aliases=["analyze", "extract"])
 @click.pass_context
 def get_source_file_data(ctx):
-    eg = EGProcessor()
-    eg.get_source_file_data()
+    if ctx.obj.get("DEBUG"):
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+    eg = EarthgazerProcessor(logging_level=logging_level)
+    eg.get_source_file_data(logging_level=logging_level)
 
 
 @pipeline.command(help="Backup missing images into storage filesystem.", aliases=["load", "download"])
+@click.option("--force", is_flag=True, help="Force download of all images.")
 @click.pass_context
-def backup_images(ctx):
-    eg = EGProcessor()
-    eg.backup_images()
+def backup_images(ctx, force):
+    if ctx.obj.get("DEBUG"):
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+    eg = EarthgazerProcessor(logging_level=logging_level)
+    eg.backup_images(logging_level=logging_level, force=force)
+
+@pipeline.command(help="translate dn images to toa reflectance.", aliases=["dn2toa"])
+@click.pass_context
+def dn_to_toa_reflectance(ctx):
+    if ctx.obj.get("DEBUG"):
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+    eg = EarthgazerProcessor(logging_level=logging_level)
+    eg.dn_to_toa_reflectance(logging_level=logging_level)

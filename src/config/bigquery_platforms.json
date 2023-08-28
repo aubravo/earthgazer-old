@@ -12,8 +12,8 @@
       "east_lon": "east_lon",
       "base_url": "base_url",
       "mgrs_tile": "mgrs_tile",
-      "radiometric_measure": "\"REFLECTANCE\"",
-      "athmospheric_reference_level": "CASE WHEN product_id LIKE '%_MSIL1C_%' THEN \"TOA\" WHEN product_id LIKE '%_MSIL2A_%' THEN \"BOA\" ELSE NULL END",
+      "_radiometric_measure": "\"REFLECTANCE\"",
+      "_athmospheric_reference_level": "CASE WHEN product_id LIKE '%_MSIL1C_%' THEN \"TOA\" WHEN product_id LIKE '%_MSIL2A_%' THEN \"BOA\" ELSE NULL END",
       "wrs_path": "NULL",
       "wrs_row": "NULL",
       "data_type": "NULL"
@@ -31,8 +31,8 @@
       "east_lon": "east_lon",
       "base_url": "base_url",
       "mgrs_tile": "NULL",
-      "radiometric_measure": "\"DN\"",
-      "athmospheric_reference_level": "\"TOA\"",
+      "_radiometric_measure": "\"DN\"",
+      "_athmospheric_reference_level": "\"TOA\"",
       "wrs_path": "wrs_path",
       "wrs_row": "wrs_row",
       "data_type": "data_type"

@@ -10,8 +10,8 @@ SELECT
     {{ east_lon | safe }} AS east_lon,
     {{ base_url | safe }} AS base_url,
     {{ mgrs_tile | safe }} AS mgrs_tile,
-    {{ radiometric_measure | safe }} AS radiometric_measure,
-    {{ athmospheric_reference_level | safe }} AS athmospheric_reference_level,
+    -- {{ radiometric_measure | safe }} AS radiometric_measure,
+    -- {{ athmospheric_reference_level | safe }} AS athmospheric_reference_level,
     {{ wrs_path | safe }} AS wrs_path,
     {{ wrs_row | safe }} AS wrs_row,
     {{ data_type | safe }} AS data_type

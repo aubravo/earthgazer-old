@@ -1,4 +1,9 @@
-========
+==========
+Earthgazer
+==========
+
+Welcome to the official earthgazer documentation! A free and open source Satellite image processing pipeline.
+
 Contents
 ========
 

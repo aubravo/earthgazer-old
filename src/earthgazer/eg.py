@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import enum
 import json
@@ -8,12 +10,12 @@ from pathlib import Path
 from typing import ClassVar
 from typing import List
 from typing import Optional
+import uuid
 
 import fsspec
 import jinja2
 import numpy as np
 import rasterio
-from google.api_core import retry
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from PIL import Image
@@ -31,6 +33,7 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import create_engine
 from sqlalchemy import func
+from sqlalchemy import UUID
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import MappedAsDataclass
@@ -50,7 +53,7 @@ sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir,
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
-    pass
+    """SQLAlchemy ORM Base class for child classes to inherit from. This shouldn't be used directly"""
 
 
 class RadiometricMeasure(enum.Enum):
@@ -64,23 +67,16 @@ class AtmosphericReferenceLevel(enum.Enum):
     BOA = "BOA"
 
 
-class FileProcessingStatus(enum.Enum):
-    FOUND = "FOUND"
-    STORING_BAND = "STORING_BAND"
-    STORED_BAND = "STORED_BAND"
-    BAND_STORAGE_FAILED = "BAND_STORAGE_FAILED"
+class ProcessingMethod(enum.Enum):
+    TRACK = "TRACK"
+    BACKUP = "BACKUP"
+    CONVERSION = "CONVERSION"
+    COMPOSITE = "COMPOSITE"
+    NORMALIZATION = "NORMALIZATION"
 
 
-class OutputStorageType(enum.Enum):
-    GCS = "GCS"
-    LOCAL = "LOCAL"
-    VOLATILE = "VOLATILE"
-    # ToDo: Implement further output storage types
-
-
-class CaptureData(Base):
-    __tablename__ = "capture_data"
-
+class Capture(Base):
+    __tablename__ = "capture"
     main_id: Mapped[str] = mapped_column(String(30), primary_key=True)
     secondary_id: Mapped[str] = mapped_column(String(30))
     mission_id: Mapped[str] = mapped_column(String(30))
@@ -89,17 +85,14 @@ class CaptureData(Base):
     south_lat: Mapped[float]
     west_lon: Mapped[float]
     east_lon: Mapped[float]
-    base_url: Mapped[str] = mapped_column(String(120))
-    cloud_cover: Mapped[Optional[float]] = None
-    radiometric_measure: Mapped[Optional[str]] = mapped_column(Enum(RadiometricMeasure), default=None)
-    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), default=None)
+    base_url: Mapped[str] = mapped_column(String(250))
+    cloud_cover: Mapped[Optional[float]] = mapped_column(Float, default=None)
     mgrs_tile: Mapped[Optional[str]] = mapped_column(String(30), default=None)
     wrs_path: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     wrs_row: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     data_type: Mapped[Optional[str]] = mapped_column(String(30), default=None)
-
-    # Relationships
-    source_files: Mapped[Optional[List["SourceFile"]]] = relationship("SourceFile", default_factory=list)
+    capture_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
+    files: Mapped[List["File"]] = relationship("File", back_populates="capture", default=None)
 
     # Templated columns
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
@@ -107,51 +100,58 @@ class CaptureData(Base):
     schema = "earthgazer"
 
     @classmethod
-    def get_by_main_id(cls, session: Session, main_id: str) -> "CaptureData":
+    def get_by_main_id(cls, session: Session, main_id: str) -> 'Capture' | None:
         return session.query(cls).filter(cls.main_id == main_id).first()
 
-    def add_source_file(self, src_file: "SourceFile") -> None:
-        self.source_files.append(src_file)
 
+class File(Base):
+    __tablename__ = "file"
+    capture_id: Mapped[str] = mapped_column(ForeignKey("capture.main_id"), primary_key=True)
+    sub_id: Mapped[str] = mapped_column(String(30), primary_key=True)
+    file_format: Mapped[str] = mapped_column(String(30))
+    processing_method: Mapped[ProcessingMethod] = mapped_column(Enum(ProcessingMethod))
+    source_path: Mapped[Optional[str]] = mapped_column(String(250))
+    storage_path: Mapped[Optional[str]] = mapped_column(String(250))
+    radiometric_measure: Mapped[Optional[str]] = mapped_column(Enum(RadiometricMeasure), default=None)
+    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), default=None)
+    file_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
+    capture: Mapped["Capture"] = relationship('Capture', back_populates='files', default=None)
+    sources: Mapped[List["FileSource"]] = relationship('FileSource', foreign_keys='FileSource.file_id', back_populates='file', default=None)
+    derived_images: Mapped[List["FileSource"]] = relationship('FileSource', foreign_keys='FileSource.source_file_id', back_populates='source_file', default=None)
 
-class SourceFile(Base):
-    __tablename__ = "source_file"
-
-    main_id: Mapped[str] = mapped_column(ForeignKey("capture_data.main_id"), primary_key=True)
-    file_id: Mapped[str] = mapped_column(String(30), primary_key=True)
-    format: Mapped[str] = mapped_column(String(30))
-    source_image_url: Mapped[str] = mapped_column(String(250))
-
-    # Templated columns
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
+    schema = "earthgazer"
+
+
+class FileSource(Base):
+    __tablename__ = "file_source"
+    file_id: Mapped[str] = mapped_column(ForeignKey("file.file_id"), primary_key=True)
+    source_file_id: Mapped[str] = mapped_column(ForeignKey("file.file_id"), default=None, primary_key=True)
+    file: Mapped[File] = relationship('File', foreign_keys=[file_id], back_populates='sources', default=None)
+    source_file: Mapped[File] = relationship('File', foreign_keys=[source_file_id], back_populates='derived_images', default=None)
     schema = "earthgazer"
 
 
 class Location(Base):
     __tablename__ = "location"
-
+    location_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     location_name: Mapped[str] = mapped_column(String(50))
     location_description: Mapped[Optional[str]] = mapped_column(String(500))
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    location_id: int = Column(Integer, primary_key=True, autoincrement=True)
     monitoring_period_start: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.datetime.fromisoformat("1950-01-01"))
     monitoring_period_end: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.date.fromisoformat("2050-12-12"))
-
-    # Templated columns
+    
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
     schema = "earthgazer"
 
     def __repr__(self) -> str:
-        _ = (
-            f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | "
-            + f"{'active' if self.active else 'inactive': >8} | "
-            + f"{self.monitoring_period_start} | {self.monitoring_period_end}"
-        )
-        return _
+        repr = f"{self.location_id: >4} | {self.location_name:25} | {self.latitude:11.6f} | {self.longitude:11.6f} | " \
+               f"{'active' if self.active else 'inactive': >8} | {self.monitoring_period_start} | {self.monitoring_period_end}"
+        return repr
 
 
 class EGConfig(BaseSettings):
@@ -160,13 +160,6 @@ class EGConfig(BaseSettings):
     # Local environment
     local_path: str = f'{Path("~/.eg").expanduser()}'.replace("\\", "/")
 
-    # Pipeline steps
-    update_data: bool = False
-    download_band_images: bool = False
-    composite_generation: bool = False
-    normalize_dataset: bool = False
-    track_images: bool = False
-
     # Data
     force_download: bool = False
     storage_type: str = Field(default="local")
@@ -174,10 +167,6 @@ class EGConfig(BaseSettings):
     cloud_backup_bucket: str = "gxiba-storage"
     remote_storage_base_path: str = f"{cloud_backup_bucket}/eg/storage"
     google_credentials_file_path: str = f"{local_path}/credentials.json"
-    google_storage_downloader_retry_inital: int = 1
-    google_storage_downloader_retry_maximum: int = 120
-    google_storage_downloader_retry_multiplier: int = 2
-    google_storage_downloader_retry_timeout: int = 1200
 
     # Database
     database_url: AnyUrl = Field(default=f"sqlite:///{local_path}/eg.db", exclude=True)
@@ -189,6 +178,8 @@ class EGConfig(BaseSettings):
 
 
 class BandProcessor:
+    """Class for processing band images"""
+
     @staticmethod
     def open_band(band_path):
         with rasterio.open(band_path) as src:
@@ -201,17 +192,18 @@ class BandProcessor:
         im.save(output_path, "JPEG", quality=100)
 
 
-class EGProcessor:
-    def __init__(self):
+class EarthgazerProcessor:
+    def __init__(self, logging_level=logging.INFO):
+        logger.setLevel(logging_level)
         welcome_message = f"\n{earthgazer.__logo__}\n{'v' + earthgazer.__version__:>35}"
         logger.debug(welcome_message)
 
         logger.debug("Loading configuration...")
         self.env = EGConfig()
-        dump = "\n"
+        config_variables = "\n"
         for key, value in self.env.model_dump().items():
-            dump += f"   {key + ':': <45} {value}\n"
-        logger.debug(dump)
+            config_variables += f"   {key + ':': <45} {value}\n"
+        logger.debug(config_variables)
 
         Path(self.env.local_path).mkdir(parents=True, exist_ok=True)
         Path(self.env.local_storage_base_path).mkdir(parents=True, exist_ok=True)
@@ -227,11 +219,8 @@ class EGProcessor:
                 raise ConfigFileNotFound(f"{config_file} file not found") from err
 
         self.bigquery_platforms_config = load_config("bigquery_platforms")
-        logger.debug(f"BigQuery platforms config: {self.bigquery_platforms_config}")
         self.bands_definition = load_config("bands")
-        logger.debug(f"Bands config: {self.bands_definition}")
         self.composites_definition = load_config("composites")
-        logger.debug(f"Composites config: {self.composites_definition}")
 
         with Path(self.env.google_credentials_file_path).open(encoding="utf-8") as f:
             service_account_credentials = service_account.Credentials.from_service_account_info(
@@ -244,13 +233,6 @@ class EGProcessor:
         # Add logic to handle multiple types of filesystems
         self.gcs_storage_options = {"token": self.env.google_credentials_file_path}
         self.gcs_storage_client = fsspec.filesystem("gcs", **self.gcs_storage_options)
-
-        self.retry_methodology = retry.Retry(
-            initial=self.env.google_storage_downloader_retry_inital,
-            maximum=self.env.google_storage_downloader_retry_maximum,
-            multiplier=self.env.google_storage_downloader_retry_multiplier,
-            timeout=self.env.google_storage_downloader_retry_timeout,
-        )
 
         engine = create_engine(str(self.env.database_url), echo=self.env.database_engine_echo)
         Base.metadata.create_all(engine)
@@ -288,7 +270,8 @@ class EGProcessor:
         finally:
             session.close()
 
-    def update_bigquery_data(self):
+    def update_bigquery_data(self, logging_level=logging.INFO):
+        logger.setLevel(logging_level)
         session = scoped_session(self.session_factory)
         logger.info("Beginning data update process")
         try:
@@ -310,20 +293,21 @@ class EGProcessor:
                     platform_query = sql_environment.get_template("bigquery_get_locations.sql").render(**platform_query_params)
                     logger.debug(platform_query)
                     for result in self.bigquery_client.query(platform_query):
-                        if session.query(CaptureData).where(CaptureData.main_id == result["main_id"]).count() > 0:
+                        if session.query(Capture).where(Capture.main_id == result["main_id"]).count() > 0:
                             logger.debug(f"{result['main_id']} already in database")
                             continue
                         logger.debug(f"Adding {result['main_id']} to database")
-                        session.add(CaptureData(**result))
+                        session.add(Capture(**result))
                         session.commit()
         finally:
             session.close()
 
-    def get_source_file_data(self):
+    def get_source_file_data(self, logging_level=logging.debug):
+        logger.setLevel(logging_level)
         gcs_url_parser = re.compile(r"gs://(?P<bucket_name>.*?)/(?P<blobs_path_name>.*)")
         blob_finder = re.compile(r"^.*?(?:tiles.*?IMG_DATA.*?|/LC0[0-9]_.*?)_(?P<file_id>B[0-9A]{1,2}|MTL)\.(?P<format>TIF|jp2|txt)$")
 
-        def mission_parse(captured_data_element: CaptureData) -> str:
+        def mission_parse(captured_data_element: Capture) -> str | None:
             if "SENTINEL-2" in captured_data_element.mission_id:
                 return "SENTINEL_2"
             elif "LANDSAT_8" in captured_data_element.mission_id:
@@ -335,14 +319,16 @@ class EGProcessor:
         logger.info("Beginning band images download process")
         session = scoped_session(self.session_factory)
         try:
-            for captured_data_element in session.query(CaptureData).all():
+            for captured_data_element in session.query(Capture).all():
+                logger.info(f"Processing {captured_data_element.main_id}")
+                logger.info(f"{len(captured_data_element.files)} files already downloaded for {captured_data_element.main_id}")
+                continue
                 if (mission := mission_parse(captured_data_element)) is None:
                     continue
-                if len(captured_data_element.source_files) < len(self.bands_definition[mission]):
+                if len(captured_data_element.files) < len(self.bands_definition[mission]):
                     logger.debug(
                         f"{captured_data_element.main_id} from platform {captured_data_element.mission_id} has missing bands for download"
                     )
-                    gcs_url_parser.search(captured_data_element.base_url).groupdict()
                     logger.info({captured_data_element.base_url})
                     for blob in self.gcs_storage_client.find(f"{captured_data_element.base_url}/"):
                         if test := blob_finder.search(blob):
@@ -350,16 +336,21 @@ class EGProcessor:
                             file_id, file_format = test.groupdict()["file_id"], test.groupdict()["format"]
                             logger.debug(f"Found {file_id} {file_format} for {captured_data_element.main_id}")
                             if (
-                                session.query(SourceFile)
-                                .where(SourceFile.main_id == captured_data_element.main_id)
-                                .where(SourceFile.file_id == file_id)
+                                session.query(File)
+                                .where(File.capture_id == captured_data_element.main_id)
+                                .where(File.file_id == file_id)
                                 .count()
                                 > 0
                             ):
                                 logger.warning(f"{file_id} {file_format} for {captured_data_element.main_id} already in database")
                                 continue
-                            source_file = SourceFile(
-                                main_id=captured_data_element.main_id, file_id=file_id, format=file_format, source_image_url=f"gs://{blob}"
+                            source_file = File(
+                                capture_id=captured_data_element.main_id,
+                                sub_id=file_id,
+                                file_format=file_format,
+                                source_path=f"gs://{blob}",
+                                storage_path=None,
+                                processing_method=ProcessingMethod.TRACK
                             )
                             captured_data_element.add_source_file(source_file)
                             session.commit()
@@ -369,31 +360,50 @@ class EGProcessor:
         finally:
             session.close()
 
-    def backup_images(self):
+    def backup_images(self, logging_level=logging.INFO, force=False):
+        logger.setLevel(logging_level)
         present_files = self.gcs_storage_client.find(f"gs://{self.env.remote_storage_base_path}/")
         session = scoped_session(self.session_factory)
         try:
-            for source_file in session.query(SourceFile):
+            for source_file in session.query(File):
                 sourcefile_name = source_file.source_image_url.split("/")[-1]
-                if f"{self.env.remote_storage_base_path}/{source_file.main_id}/{sourcefile_name}" not in present_files:
+                if f"{self.env.remote_storage_base_path}/{source_file.main_id}/{sourcefile_name}" not in present_files or force:
                     save_path = f"gs://{self.env.remote_storage_base_path}/{source_file.main_id}/{sourcefile_name}"
                     self.gcs_storage_client.copy(source_file.source_image_url, save_path)
+                    session.add(ProcessedFile(
+                        main_id=source_file.main_id,
+                        format=source_file.format,
+                        storage_path=save_path,
+                        processing_type=ProcessingType.BACKUP
+                    ))
+                    session.add(ProcessingRelationships(
+                        main_id=source_file.main_id,
+                        source_file_id=source_file.file_id
+                    ))
+                    session.commit()
                 else:
-                    logger.debug(f"{source_file.main_id} already backed up.")
-
+                    try:
+                        x = session.query(File).join(FileSource, ProcessingRelationships.processing_id == ProcessedFile.processing_id)\
+                            .where(ProcessingRelationships.source_file_id == source_file.file_id)\
+                                .where(ProcessedFile.main_id == source_file.main_id)\
+                                    .where(ProcessedFile.processing_type == ProcessingType.BACKUP).all()
+                        if len(x) > 1:
+                            raise ValueError(f"Multiple backup files for {source_file.main_id} with ID {x.processing_id}.")
+                        elif len(x) == 0:
+                            raise ValueError(f"No backup files for {source_file.main_id}.")
+                        logger.debug(f"{source_file.main_id} already backed up with ID {x[0].processing_id}.")
+                    except ValueError as e:
+                        logger.error(e)
+                        continue
         finally:
             session.close()
 
+    def dn_to_toa_reflectance(self, logging_level=logging.INFO):
+        logger.setLevel(logging_level)
+        logger.debug("Beginning TOA reflectance conversion process")
+        session = scoped_session(self.session_factory)
+        try:
+            ...        
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] - %(asctime)s - %(message)s")
-    eg = EGProcessor()
-    if False:
-        test_location = Path(f"{os.path.curdir}/test/popocatepetl.json")
-
-        with test_location.open(encoding="utf-8") as f:
-            test = json.load(f)
-        eg.add_location(**test)
-        eg.update_bigquery_data()
-        eg.get_source_file_data()
-        eg.backup_images()
+        finally:
+            session.close()
