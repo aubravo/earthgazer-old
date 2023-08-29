@@ -74,7 +74,6 @@ class ProcessingMethod(enum.Enum):
     COMPOSITE = "COMPOSITE"
     NORMALIZATION = "NORMALIZATION"
 
-
 class Capture(Base):
     __tablename__ = "capture"
     main_id: Mapped[str] = mapped_column(String(30), primary_key=True)
@@ -92,9 +91,8 @@ class Capture(Base):
     wrs_row: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     data_type: Mapped[Optional[str]] = mapped_column(String(30), default=None)
     capture_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
-    files: Mapped[List["File"]] = relationship("File", back_populates="capture", default=None)
+    files: Mapped[List["File"]] = relationship("File", back_populates="capture", default_factory=list,cascade="all, delete-orphan")
 
-    # Templated columns
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
     schema = "earthgazer"
@@ -106,18 +104,18 @@ class Capture(Base):
 
 class File(Base):
     __tablename__ = "file"
-    capture_id: Mapped[str] = mapped_column(ForeignKey("capture.main_id"), primary_key=True)
+    capture_id: Mapped[str] = mapped_column(ForeignKey("capture.main_id"), nullable=True)
     sub_id: Mapped[str] = mapped_column(String(30), primary_key=True)
     file_format: Mapped[str] = mapped_column(String(30))
     processing_method: Mapped[ProcessingMethod] = mapped_column(Enum(ProcessingMethod))
     source_path: Mapped[Optional[str]] = mapped_column(String(250))
     storage_path: Mapped[Optional[str]] = mapped_column(String(250))
-    radiometric_measure: Mapped[Optional[str]] = mapped_column(Enum(RadiometricMeasure), default=None)
-    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), default=None)
+    radiometric_measure: Mapped[Optional[str]] = mapped_column(Enum(RadiometricMeasure), nullable=True)
+    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), nullable=True)
     file_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
     capture: Mapped["Capture"] = relationship('Capture', back_populates='files', default=None)
-    sources: Mapped[List["FileSource"]] = relationship('FileSource', foreign_keys='FileSource.file_id', back_populates='file', default=None)
-    derived_images: Mapped[List["FileSource"]] = relationship('FileSource', foreign_keys='FileSource.source_file_id', back_populates='source_file', default=None)
+    sources: Mapped[Optional[List["FileSource"]]] = relationship('FileSource', foreign_keys='FileSource.file_id', back_populates='file', default_factory=list)
+    derived_images: Mapped[Optional[List["FileSource"]]] = relationship('FileSource', foreign_keys='FileSource.source_file_id', back_populates='source_file', default_factory=list)
 
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
@@ -162,6 +160,7 @@ class EGConfig(BaseSettings):
 
     # Data
     force_download: bool = False
+    force_get_source_file_data: bool = False
     storage_type: str = Field(default="local")
     local_storage_base_path: str = f"{local_path}/storage"
     cloud_backup_bucket: str = "gxiba-storage"
@@ -193,6 +192,17 @@ class BandProcessor:
 
 
 class EarthgazerProcessor:
+    @staticmethod
+    def load_config(config_file: str) -> dict:
+            config_path = Path(f"config/{config_file}.json")
+            logger.debug(f"Loading {config_file} config from {config_path.absolute()}")
+            try:
+                with config_path.open(encoding="utf-8") as f:
+                    return json.load(f)
+            except FileNotFoundError as err:
+                logger.error(f"{config_file} file not found")
+                raise ConfigFileNotFound(f"{config_file} file not found") from err
+
     def __init__(self, logging_level=logging.INFO):
         logger.setLevel(logging_level)
         welcome_message = f"\n{earthgazer.__logo__}\n{'v' + earthgazer.__version__:>35}"
@@ -208,19 +218,9 @@ class EarthgazerProcessor:
         Path(self.env.local_path).mkdir(parents=True, exist_ok=True)
         Path(self.env.local_storage_base_path).mkdir(parents=True, exist_ok=True)
 
-        def load_config(config_file: str) -> dict:
-            config_path = Path(f"config/{config_file}.json")
-            logger.debug(f"Loading {config_file} config from {config_path.absolute()}")
-            try:
-                with config_path.open(encoding="utf-8") as f:
-                    return json.load(f)
-            except FileNotFoundError as err:
-                logger.error(f"{config_file} file not found")
-                raise ConfigFileNotFound(f"{config_file} file not found") from err
-
-        self.bigquery_platforms_config = load_config("bigquery_platforms")
-        self.bands_definition = load_config("bands")
-        self.composites_definition = load_config("composites")
+        self.bigquery_platforms_config = self.load_config("bigquery_platforms")
+        self.bands_definition = self.load_config("bands")
+        self.platform_config = self.load_config("platform_configs")
 
         with Path(self.env.google_credentials_file_path).open(encoding="utf-8") as f:
             service_account_credentials = service_account.Credentials.from_service_account_info(
@@ -305,7 +305,7 @@ class EarthgazerProcessor:
     def get_source_file_data(self, logging_level=logging.debug):
         logger.setLevel(logging_level)
         gcs_url_parser = re.compile(r"gs://(?P<bucket_name>.*?)/(?P<blobs_path_name>.*)")
-        blob_finder = re.compile(r"^.*?(?:tiles.*?IMG_DATA.*?|/LC0[0-9]_.*?)_(?P<file_id>B[0-9A]{1,2}|MTL)\.(?P<format>TIF|jp2|txt)$")
+        blob_finder = re.compile(r"^.*?(?:tiles.*?IMG_DATA.*?|/LC0[0-9]_.*?)_(?P<sub_id>B[0-9A]{1,2}|MTL)\.(?P<format>TIF|jp2|txt)$")
 
         def mission_parse(captured_data_element: Capture) -> str | None:
             if "SENTINEL-2" in captured_data_element.mission_id:
@@ -316,46 +316,57 @@ class EarthgazerProcessor:
                 logger.warning(f"{captured_data_element.mission_id} for {captured_data_element.main_id} is currently not supported")
                 return None
 
-        logger.info("Beginning band images download process")
+        logger.info("Beginning files tracking process")
         session = scoped_session(self.session_factory)
         try:
             for captured_data_element in session.query(Capture).all():
-                logger.info(f"Processing {captured_data_element.main_id}")
-                logger.info(f"{len(captured_data_element.files)} files already downloaded for {captured_data_element.main_id}")
-                continue
+                logger.debug(f"Processing {captured_data_element.main_id}")
+                logger.debug(f"{len(captured_data_element.files)} files already downloaded")
                 if (mission := mission_parse(captured_data_element)) is None:
+                    logger.debug(f"Unable to parse mission for {captured_data_element.main_id}")
                     continue
-                if len(captured_data_element.files) < len(self.bands_definition[mission]):
-                    logger.debug(
-                        f"{captured_data_element.main_id} from platform {captured_data_element.mission_id} has missing bands for download"
-                    )
-                    logger.info({captured_data_element.base_url})
+                if len(captured_data_element.files) < len(self.bands_definition[mission]) or self.env.force_get_source_file_data:
+                    logger.debug("Downloading missing bands")
                     for blob in self.gcs_storage_client.find(f"{captured_data_element.base_url}/"):
-                        if test := blob_finder.search(blob):
-                            logger.debug(f"Found file with matching name requirements: {blob}")
-                            file_id, file_format = test.groupdict()["file_id"], test.groupdict()["format"]
-                            logger.debug(f"Found {file_id} {file_format} for {captured_data_element.main_id}")
-                            if (
-                                session.query(File)
-                                .where(File.capture_id == captured_data_element.main_id)
-                                .where(File.file_id == file_id)
-                                .count()
-                                > 0
-                            ):
-                                logger.warning(f"{file_id} {file_format} for {captured_data_element.main_id} already in database")
+                        if blob_finder_result := blob_finder.search(blob):
+                            logger.debug(f"Found matching file: {blob}")
+                            sub_id, file_format = blob_finder_result.groupdict()["sub_id"], blob_finder_result.groupdict()["format"]
+                            logger.debug(f"Found {sub_id} {file_format} for {captured_data_element.main_id}")
+                            already_loaded_files = session.query(File).where(File.capture_id == captured_data_element.main_id).where(File.sub_id == sub_id)
+                            if already_loaded_files.count() > 0 and self.env.force_get_source_file_data:
+                                # ToDo: Test if this works
+                                logger.debug(f"{sub_id} {file_format} for {captured_data_element.main_id} already in database, but force flag is set")
+                                already_loaded_files.delete()
+                                session.flush()
+                            elif already_loaded_files.count() > 0:
+                                logger.debug(f"{sub_id} {file_format} for {captured_data_element.main_id} already in database")
                                 continue
-                            source_file = File(
-                                capture_id=captured_data_element.main_id,
-                                sub_id=file_id,
-                                file_format=file_format,
-                                source_path=f"gs://{blob}",
-                                storage_path=None,
-                                processing_method=ProcessingMethod.TRACK
-                            )
-                            captured_data_element.add_source_file(source_file)
+                            
+                            file_data ={
+                                 "capture_id": captured_data_element.main_id,
+                                 "sub_id": sub_id,
+                                 "file_format":file_format,
+                                 "processing_method":ProcessingMethod.TRACK,
+                                 "source_path":f"gs://{blob}",
+                                 "storage_path":None
+                            }
+
+                            for info_key in ['radiometric_measure', 'athmospheric_reference_level']:
+                                if self.platform_config[mission][info_key]['type'] == 'equals':
+                                    file_data[info_key] = self.platform_config[mission][info_key]['value']
+                                elif self.platform_config[mission][info_key]['type'] == 'evaluate':
+                                    template = jinja2.Template(self.platform_config[mission][info_key]['value'])
+                                    rendered_template = template.render(**captured_data_element.__dict__)
+                                    logger.debug(rendered_template)
+                                    file_data[info_key] = eval(rendered_template)
+                                else:
+                                    raise NotImplementedError(f"Unknown type {self.platform_config[mission][info_key]['type']} for {info_key} in {mission} platform config")                                    
+                            
+                            source_file = File(**file_data)
+                            captured_data_element.files.append(source_file)
                             session.commit()
                 else:
-                    logger.debug(f"Bands for {captured_data_element.main_id} already downloaded")
+                    logger.debug(f"Files for {captured_data_element.main_id} already being tracked")
                     continue
         finally:
             session.close()
