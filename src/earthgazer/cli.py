@@ -76,7 +76,7 @@ def pipeline():
     """
 
 
-@pipeline.command(help="Query bigquery to get metadata for all images in a location.", aliases=["bigquery", "update-data"])
+@pipeline.command(help="Query bigquery to get metadata for all images in a location.", aliases=["bigquery", "bq"])
 @click.pass_context
 def update_bigquery_data(ctx):
     if ctx.obj.get("DEBUG"):
@@ -87,7 +87,7 @@ def update_bigquery_data(ctx):
     eg.update_bigquery_data(logging_level=logging_level)
 
 
-@pipeline.command(help="Analyze image location and extract metadata before confirming loading.", aliases=["analyze", "extract"])
+@pipeline.command(help="Analyze image location and extract metadata before confirming loading.", aliases=["get"])
 @click.pass_context
 def get_source_file_data(ctx):
     if ctx.obj.get("DEBUG"):
@@ -98,7 +98,7 @@ def get_source_file_data(ctx):
     eg.get_source_file_data(logging_level=logging_level)
 
 
-@pipeline.command(help="Backup missing images into storage filesystem.", aliases=["load", "download"])
+@pipeline.command(help="Backup missing images into storage filesystem.", aliases=["backup", "bu"])
 @click.option("--force", is_flag=True, help="Force download of all images.")
 @click.pass_context
 def backup_images(ctx, force):
