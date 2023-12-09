@@ -5,11 +5,10 @@ import enum
 import json
 import logging
 import re
+import uuid
 from pathlib import Path
-from typing import ClassVar
 from typing import List
 from typing import Optional
-import uuid
 
 import fsspec
 import jinja2
@@ -18,10 +17,8 @@ import rasterio
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from PIL import Image
-from pydantic import AnyUrl
 from pydantic import Field
 from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
 from sqlalchemy import Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Enum
@@ -31,34 +28,12 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import create_engine
 from sqlalchemy import func
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import MappedAsDataclass
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
-
-import earthgazer
-from earthgazer.exceptions import ConfigFileNotFound
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-queries_dir = Path(__file__).parent.parent / "queries"
-sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
-    queries_dir, encoding="utf-8"), autoescape=True)
-
-
-class RadiometricMeasure(enum.Enum):
-    RADIANCE = "RADIANCE"
-    REFLECTANCE = "REFLECTANCE"
-    DN = "DN"
-
-
-class AtmosphericReferenceLevel(enum.Enum):
-    TOA = "TOA"
-    BOA = "BOA"
 
 
 class ProcessingMethod(enum.Enum):
@@ -173,14 +148,7 @@ class Location(Base):
 
 
 class EGConfig(BaseSettings):
-    # Data
-    force_download: bool = False
-    force_get_source_file_data: bool = False
-    storage_type: str = Field(default="local")
-    local_storage_base_path: str = f"{local_path}/storage"
-    cloud_backup_bucket: str = "gxiba-storage"
-    remote_storage_base_path: str = f"{cloud_backup_bucket}/eg/storage"
-    google_credentials_file_path: str = f"{local_path}/credentials.json"
+    ...
 
 
 class BandProcessor:
@@ -200,20 +168,7 @@ class BandProcessor:
 
 
 class EarthgazerProcessor:
-    @staticmethod
-    def load_config(config_file: str) -> dict:
-        config_path = Path(f"config/{config_file}.json")
-        logger.debug(
-            f"Loading {config_file} config from {config_path.absolute()}")
-        try:
-            with config_path.open(encoding="utf-8") as f:
-                return json.load(f)
-        except FileNotFoundError as err:
-            logger.error(f"{config_file} file not found")
-            raise ConfigFileNotFound(f"{config_file} file not found") from err
-
     def __init__(self, logging_level=logging.INFO):
-        logger.setLevel(logging_level)
         self.env = EGConfig()
 
         service_account_credentials = service_account.Credentials.from_service_account_info(

@@ -15,10 +15,10 @@ SELECT
     {{ data_type | safe }} AS data_type
 FROM {{ bigquery_path }}
 WHERE
-    {{ sensing_time }} >= '{{ start_date }}' AND
-    {{ sensing_time }} <= '{{ end_date }}' AND
+    {{ sensing_time }} >= '{{ location_monitoring_start }}' AND
+    {{ sensing_time }} <= '{{ location_monitoring_end }}' AND
     {{ extra_filters | safe }} AND
-    {{ north_lat }} >= {{ lat }} AND
-    {{ south_lat }} <= {{ lat }} AND
-    {{ west_lon }} <= {{ lon }} AND
-    {{ east_lon }} >= {{ lon }}
+    {{ north_lat }} >= {{ location_latitude }} AND
+    {{ south_lat }} <= {{ location_latitude }} AND
+    {{ west_lon }} <= {{ location_longitude }} AND
+    {{ east_lon }} >= {{ location_longitude }}

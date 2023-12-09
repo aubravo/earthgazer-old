@@ -1,11 +1,14 @@
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
+from earthgazer.platforms import RadiometricMeasure
+from earthgazer.platforms import AtmosphericReferenceLevel
+from earthgazer.exceptions import PlatformAttributeCalculationException
 
 
 class Sentinel_2(Platform):
-    NAME = "SENTINEL_2"
-    BIGQUERY_PATH = "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index"
-    BIGQUERY_ATTRIBUTE_MAPPING = {
+    name = "SENTINEL_2"
+    bigquery_attribute_mapping = {
+        'bigquery_path': "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index",
         "main_id": "product_id",
         "secondary_id": "granule_id",
         "mission_id": "CASE WHEN product_id LIKE 'S2A%' THEN \"SENTINEL-2A\" WHEN product_id LIKE 'S2B%' "
@@ -23,7 +26,7 @@ class Sentinel_2(Platform):
         "data_type": "NULL",
         "extra_filters": "--"
     }
-    BANDS = [
+    bands = [
         Band(name="B01", description="Coastal aerosol", wavelength=0.443, resolution=60),
         Band(name="B02", description="Blue", wavelength=0.490, resolution=10),
         Band(name="B03", description="Green", wavelength=0.560, resolution=10),
@@ -39,14 +42,22 @@ class Sentinel_2(Platform):
         Band(name="B12", description="SWIR 2", wavelength=2.190, resolution=20),
     ]
 
+    def calculate_radiometric_measure(self, **kwargs) -> str:
+        return RadiometricMeasure.REFLECTANCE
+
+    def calculate_athmospheric_reference_level(self, main_id: str, **kwargs) -> str | None:
+        if '_MSIL1C_' in main_id:
+            return AtmosphericReferenceLevel.TOA
+        elif '_MSIL2A_' in main_id:
+            return AtmosphericReferenceLevel.BOA
+        else:
+            raise PlatformAttributeCalculationException(
+                f'Unable to calculate Athmospheric Reference Level from main_id: "{main_id}"')
+
 
 if __name__ == '__main__':
-    print(Sentinel_2().BANDS)
-    print(Sentinel_2().get_band_by_name("B01").wavelength)
-    from earthgazer.file_manager import FileSystems
-    filesystems = FileSystems()
-    if hasattr(filesystems, "local_storage"):
-        local_storage = filesystems.get_by_name("local_storage")
-        print(dir(local_storage))
-        print(local_storage.storage_options['base_path'])
-        local_storage.mkdir(local_storage.storage_options['base_path'] + "test")
+    sentinel_2 = Sentinel_2()
+    print(sentinel_2.bands)
+    print(sentinel_2.get_band_by_name("B01").wavelength)
+    print(sentinel_2.calculate_athmospheric_reference_level('A_MSIL1C_B'))
+    print(sentinel_2.calculate_radiometric_measure())

@@ -1,6 +1,20 @@
+import enum
+
 from abc import ABC
+from abc import abstractmethod
 from typing import List
 from typing import Optional
+
+
+class RadiometricMeasure(enum.Enum):
+    RADIANCE = "RADIANCE"
+    REFLECTANCE = "REFLECTANCE"
+    DN = "DN"
+
+
+class AtmosphericReferenceLevel(enum.Enum):
+    TOA = "TOA"
+    BOA = "BOA"
 
 
 class Band:
@@ -14,15 +28,25 @@ class Band:
         self.resolution = resolution
 
     def __repr__(self):
-        return self.name
+        return f'{self.name}({self.description})'
 
 
 class Platform(ABC):
-    NAME: str
-    BANDS: List[Band]
+    name: str
+    bigquery_attribute_mapping: dict
+    bands: List[Band]
+    athmospheric_reference_level: str
 
     def get_band_by_name(self, name: str) -> Band:
-        for band in self.BANDS:
+        for band in self.bands:
             if band.name == name:
                 return band
-        raise ValueError(f"Band {name} not found in {self.NAME}")
+        raise ValueError(f"Band {name} not found in {self.name}")
+
+    @abstractmethod
+    def calculate_radiometric_measure(**kwargs) -> RadiometricMeasure:
+        pass
+
+    @abstractmethod
+    def calculate_athmospheric_reference_level(**kwargs) -> AtmosphericReferenceLevel:
+        pass

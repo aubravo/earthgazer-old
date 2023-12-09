@@ -1,16 +1,11 @@
 google-cloud-bigquery
-google-cloud-storage
 pydantic
-redis-om
+pydantic-settings
+fsspec
+gcsfs
 jinja2
 sqlalchemy
 rasterio
 numpy
 matplotlib
 pillow
-pydantic-settings
-fsspec
-gcsfs
-click_aliases
-# dask
-# satpy
