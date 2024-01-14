@@ -1,18 +1,18 @@
+from earthgazer.exceptions import PlatformAttributeCalculationException
+from earthgazer.platforms import AtmosphericReferenceLevel
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
 from earthgazer.platforms import RadiometricMeasure
-from earthgazer.platforms import AtmosphericReferenceLevel
-from earthgazer.exceptions import PlatformAttributeCalculationException
 
 
 class Sentinel_2(Platform):
     name = "SENTINEL_2"
     bigquery_attribute_mapping = {
-        'bigquery_path': "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index",
+        "bigquery_path": "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index",
         "main_id": "product_id",
         "secondary_id": "granule_id",
         "mission_id": "CASE WHEN product_id LIKE 'S2A%' THEN \"SENTINEL-2A\" WHEN product_id LIKE 'S2B%' "
-                      "THEN \"SENTINEL-2B\" ELSE \"SENTINEL-2\" END",
+        'THEN "SENTINEL-2B" ELSE "SENTINEL-2" END',
         "sensing_time": "sensing_time",
         "cloud_cover": "cloud_cover",
         "north_lat": "north_lat",
@@ -24,7 +24,7 @@ class Sentinel_2(Platform):
         "wrs_path": "NULL",
         "wrs_row": "NULL",
         "data_type": "NULL",
-        "extra_filters": "--"
+        "extra_filters": "--",
     }
     bands = [
         Band(name="B01", description="Coastal aerosol", wavelength=0.443, resolution=60),
@@ -46,18 +46,18 @@ class Sentinel_2(Platform):
         return RadiometricMeasure.REFLECTANCE
 
     def calculate_athmospheric_reference_level(self, main_id: str, **kwargs) -> str | None:
-        if '_MSIL1C_' in main_id:
+        if "_MSIL1C_" in main_id:
             return AtmosphericReferenceLevel.TOA
-        elif '_MSIL2A_' in main_id:
+        elif "_MSIL2A_" in main_id:
             return AtmosphericReferenceLevel.BOA
         else:
-            raise PlatformAttributeCalculationException(
-                f'Unable to calculate Athmospheric Reference Level from main_id: "{main_id}"')
+            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id"
+                                                        f": \"{main_id}\"")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sentinel_2 = Sentinel_2()
     print(sentinel_2.bands)
     print(sentinel_2.get_band_by_name("B01").wavelength)
-    print(sentinel_2.calculate_athmospheric_reference_level('A_MSIL1C_B'))
+    print(sentinel_2.calculate_athmospheric_reference_level("A_MSIL1C_B"))
     print(sentinel_2.calculate_radiometric_measure())

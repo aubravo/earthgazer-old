@@ -1,7 +1,9 @@
-import fsspec
 import logging
-from earthgazer.utils import Singleton
+
+import fsspec
+
 from earthgazer.settings import EarthGazerSettings
+from earthgazer.utils import Singleton
 
 
 class FileSystems(metaclass=Singleton):
@@ -14,7 +16,7 @@ class FileSystems(metaclass=Singleton):
                 raise e
         logging.info(f"Initialized {len(self.__dict__)} file systems:")
         for x in self.__dict__:
-            logging.info(f'\t{x} as type {self.__dict__[x].protocol}.')
+            logging.info(f"\t{x} as type {self.__dict__[x].protocol}.")
 
     def get_by_name(self, file_system_name):
         return getattr(self, file_system_name)

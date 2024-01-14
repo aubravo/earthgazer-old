@@ -1,9 +1,9 @@
+from earthgazer.definitions import AtmosphericReferenceLevel
+from earthgazer.definitions import RadiometricMeasure
 from earthgazer.location import Location
 from earthgazer.operations import render_bigquery_template
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
-from earthgazer.platforms import AtmosphericReferenceLevel
-from earthgazer.platforms import RadiometricMeasure
 
 
 class Landsat_8(Platform):
@@ -24,7 +24,7 @@ class Landsat_8(Platform):
         "wrs_path": "wrs_path",
         "wrs_row": "wrs_row",
         "data_type": "data_type",
-        "extra_filters": "spacecraft_id = \"LANDSAT_8\""
+        "extra_filters": 'spacecraft_id = "LANDSAT_8"',
     }
     bands = [
         Band(name="B1", description="Coastal aerosol", wavelength=0.443, resolution=30),
@@ -47,9 +47,9 @@ class Landsat_8(Platform):
         return AtmosphericReferenceLevel.TOA
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     landsat_8 = Landsat_8()
-    popocatepetl = Location(name='Popocatepetl', latitude=123.456, longitude=654.321, description='Volcano in Mexico')
+    popocatepetl = Location(name="Popocatepetl", latitude=123.456, longitude=654.321, description="Volcano in Mexico")
     print(landsat_8.bands)
     print(landsat_8.get_band_by_name("B1").wavelength)
     print(render_bigquery_template(landsat_8, popocatepetl))

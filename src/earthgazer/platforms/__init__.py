@@ -1,40 +1,23 @@
-import enum
-
 from abc import ABC
 from abc import abstractmethod
-from typing import List
 from typing import Optional
 
 
-class RadiometricMeasure(enum.Enum):
-    RADIANCE = "RADIANCE"
-    REFLECTANCE = "REFLECTANCE"
-    DN = "DN"
-
-
-class AtmosphericReferenceLevel(enum.Enum):
-    TOA = "TOA"
-    BOA = "BOA"
-
-
 class Band:
-    def __init__(self, name: str,
-                 description: Optional[str],
-                 wavelength: Optional[float],
-                 resolution: Optional[float]):
+    def __init__(self, name: str, description: Optional[str], wavelength: Optional[float], resolution: Optional[float]):
         self.name = name
         self.description = description
         self.wavelength = wavelength
         self.resolution = resolution
 
     def __repr__(self):
-        return f'{self.name}({self.description})'
+        return f"{self.name}({self.description})"
 
 
 class Platform(ABC):
     name: str
     bigquery_attribute_mapping: dict
-    bands: List[Band]
+    bands: list[Band]
     athmospheric_reference_level: str
 
     def get_band_by_name(self, name: str) -> Band:

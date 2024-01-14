@@ -12,5 +12,4 @@ def render_bigquery_template(platform: Platform, location: Location):
     mappings = {}
     mappings.update(platform.bigquery_attribute_mapping)
     mappings.update(location.as_dict)
-    print(mappings)
     return sql_environment.get_template("bigquery_get_locations.sql").render(**mappings)
