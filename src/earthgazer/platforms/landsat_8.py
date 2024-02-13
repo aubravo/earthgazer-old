@@ -1,17 +1,14 @@
-from typing import Dict
-from typing import List
+from typing import ClassVar
 
 from earthgazer.definitions import AtmosphericReferenceLevel
 from earthgazer.definitions import RadiometricMeasure
-from earthgazer.location import Location
-from earthgazer.operations import render_bigquery_template
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
 
 
 class Landsat_8(Platform):
     name = "LANDSAT_8"
-    bigquery_attribute_mapping: Dict = {
+    bigquery_attribute_mapping: ClassVar[dict] = {
         "bigquery_path": "bigquery-public-data.cloud_storage_geo_index.landsat_index",
         "main_id": "scene_id",
         "secondary_id": "product_id",
@@ -29,7 +26,7 @@ class Landsat_8(Platform):
         "data_type": "data_type",
         "extra_filters": 'spacecraft_id = "LANDSAT_8"',
     }
-    bands: List = [
+    bands: ClassVar[list[Band]] = [
         Band(name="B1", description="Coastal aerosol", wavelength=0.443, resolution=30),
         Band(name="B2", description="Blue", wavelength=0.490, resolution=30),
         Band(name="B3", description="Green", wavelength=0.560, resolution=30),
@@ -48,11 +45,3 @@ class Landsat_8(Platform):
 
     def calculate_athmospheric_reference_level(**kwargs) -> str:
         return AtmosphericReferenceLevel.TOA.value
-
-
-if __name__ == "__main__":
-    landsat_8 = Landsat_8()
-    popocatepetl = Location(name="Popocatepetl", latitude=123.456, longitude=654.321, description="Volcano in Mexico")
-    print(landsat_8.bands)
-    print(landsat_8.get_band_by_name("B1").wavelength)
-    print(render_bigquery_template(landsat_8, popocatepetl))

@@ -1,8 +1,8 @@
-from typing import Dict
+from typing import ClassVar
 
 
 class Singleton(type):
-    _instances: Dict = {}
+    _instances: ClassVar[dict] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

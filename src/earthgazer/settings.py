@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict
+from typing import ClassVar
 
 from pydantic import field_validator
 from pydantic import model_validator
@@ -48,7 +48,7 @@ class DatabaseManagerSettings(BaseSettings, extra="allow"):
 class EarthGazerSettings(BaseSettings):
     config_path: Path = Path(Path.home() / ".eg")
     database_manager: DatabaseManagerSettings = DatabaseManagerSettings()
-    file_manager: Dict[str, FileManagerSettings] = {}
+    file_manager: ClassVar[dict[str, FileManagerSettings]] = {}
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", env_prefix="earthgazer__")
 
     @field_validator("config_path")
