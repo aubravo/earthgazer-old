@@ -1,8 +1,8 @@
+from earthgazer.definitions import AtmosphericReferenceLevel
+from earthgazer.definitions import RadiometricMeasure
 from earthgazer.exceptions import PlatformAttributeCalculationException
-from earthgazer.platforms import AtmosphericReferenceLevel
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
-from earthgazer.platforms import RadiometricMeasure
 
 
 class Sentinel_2(Platform):
@@ -43,16 +43,15 @@ class Sentinel_2(Platform):
     ]
 
     def calculate_radiometric_measure(self, **kwargs) -> str:
-        return RadiometricMeasure.REFLECTANCE
+        return RadiometricMeasure.REFLECTANCE.value
 
-    def calculate_athmospheric_reference_level(self, main_id: str, **kwargs) -> str | None:
+    def calculate_athmospheric_reference_level(self, main_id: str, **kwargs) -> str:
         if "_MSIL1C_" in main_id:
-            return AtmosphericReferenceLevel.TOA
+            return AtmosphericReferenceLevel.TOA.value
         elif "_MSIL2A_" in main_id:
-            return AtmosphericReferenceLevel.BOA
+            return AtmosphericReferenceLevel.BOA.value
         else:
-            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id"
-                                                        f": \"{main_id}\"")
+            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id" f': "{main_id}"')
 
 
 if __name__ == "__main__":

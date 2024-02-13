@@ -6,7 +6,6 @@ import json
 import logging
 import re
 import uuid
-from typing import Optional
 
 import fsspec
 import jinja2
@@ -52,11 +51,11 @@ class Capture(Base):
     west_lon: Mapped[float]
     east_lon: Mapped[float]
     base_url: Mapped[str] = mapped_column(String(250))
-    cloud_cover: Mapped[Optional[float]] = mapped_column(Float, default=None)
-    mgrs_tile: Mapped[Optional[str]] = mapped_column(String(30), default=None)
-    wrs_path: Mapped[Optional[int]] = mapped_column(Integer, default=None)
-    wrs_row: Mapped[Optional[int]] = mapped_column(Integer, default=None)
-    data_type: Mapped[Optional[str]] = mapped_column(String(30), default=None)
+    cloud_cover: Mapped[float | None] = mapped_column(Float, default=None)
+    mgrs_tile: Mapped[str | None] = mapped_column(String(30), default=None)
+    wrs_path: Mapped[int | None] = mapped_column(Integer, default=None)
+    wrs_row: Mapped[int | None] = mapped_column(Integer, default=None)
+    data_type: Mapped[str | None] = mapped_column(String(30), default=None)
     capture_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
     files: Mapped[list[File]] = relationship("File", back_populates="capture", default_factory=list, cascade="all, delete-orphan")
 
@@ -75,16 +74,16 @@ class File(Base):
     sub_id: Mapped[str] = mapped_column(String(30), primary_key=True)
     file_format: Mapped[str] = mapped_column(String(30))
     processing_method: Mapped[ProcessingMethod] = mapped_column(Enum(ProcessingMethod))
-    source_path: Mapped[Optional[str]] = mapped_column(String(250))
-    storage_path: Mapped[Optional[str]] = mapped_column(String(250))
-    radiometric_measure: Mapped[Optional[str]] = mapped_column(Enum(RadiometricMeasure), nullable=True)
-    athmospheric_reference_level: Mapped[Optional[str]] = mapped_column(Enum(AtmosphericReferenceLevel), nullable=True)
+    source_path: Mapped[str | None] = mapped_column(String(250))
+    storage_path: Mapped[str | None] = mapped_column(String(250))
+    radiometric_measure: Mapped[str | None] = mapped_column(Enum(RadiometricMeasure), nullable=True)
+    athmospheric_reference_level: Mapped[str | None] = mapped_column(Enum(AtmosphericReferenceLevel), nullable=True)
     file_id: Mapped[str] = mapped_column(String(36), primary_key=True, default_factory=lambda: str(uuid.uuid4().hex))
     capture: Mapped[Capture] = relationship("Capture", back_populates="files", default=None)
-    sources: Mapped[Optional[list[FileSource]]] = relationship(
+    sources: Mapped[list[FileSource] | None] = relationship(
         "FileSource", foreign_keys="FileSource.file_id", back_populates="file", default_factory=list
     )
-    derived_images: Mapped[Optional[list[FileSource]]] = relationship(
+    derived_images: Mapped[list[FileSource] | None] = relationship(
         "FileSource", foreign_keys="FileSource.source_file_id", back_populates="source_file", default_factory=list
     )
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
@@ -105,12 +104,12 @@ class Location(Base):
     __tablename__ = "location"
     location_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     location_name: Mapped[str] = mapped_column(String(50))
-    location_description: Mapped[Optional[str]] = mapped_column(String(500))
+    location_description: Mapped[str | None] = mapped_column(String(500))
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    monitoring_period_start: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.datetime.fromisoformat("1950-01-01"))
-    monitoring_period_end: Mapped[Optional[datetime.date]] = mapped_column(default=datetime.date.fromisoformat("2050-12-12"))
+    monitoring_period_start: Mapped[datetime.date | None] = mapped_column(default=datetime.datetime.fromisoformat("1950-01-01"))
+    monitoring_period_end: Mapped[datetime.date | None] = mapped_column(default=datetime.date.fromisoformat("2050-12-12"))
 
     added_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now)
     last_updated_timestamp: Mapped[datetime.datetime] = mapped_column(default_factory=datetime.datetime.now, onupdate=datetime.datetime.now)
@@ -277,7 +276,7 @@ class EarthgazerProcessor:
             session.close()
 
     def backup_images(self, logging_level=logging.INFO, force=False):
-        present_files = self.gcs_storage_client.find(f"gs://{self.env.remote_storage_base_path}/")
+        self.gcs_storage_client.find(f"gs://{self.env.remote_storage_base_path}/")
         session = scoped_session(self.session_factory)
         try:
             for source_file in session.query(File).where(File.processing_method.in_((ProcessingMethod.TRACK,))):
@@ -292,7 +291,7 @@ class EarthgazerProcessor:
                     athmospheric_reference_level=source_file.athmospheric_reference_level,
                     # file_id="", # Generates automatically
                 )
-                backed_up_file_source = FileSource(file_id=backed_up_file.file_id, source_file_id=source_file.file_id)
+                FileSource(file_id=backed_up_file.file_id, source_file_id=source_file.file_id)
                 exit()
 
                 # TODO: refactor all of this

@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Optional
 
 
 class Location:
@@ -8,9 +7,9 @@ class Location:
         name: str,
         latitude: float,
         longitude: float,
-        description: Optional[str] = "",
-        monitoring_start: Optional[str] = "1990-01-01",
-        monitoring_end: Optional[str] = "2050-01-01",
+        description: str | None = "",
+        monitoring_start: str | None = "1990-01-01",
+        monitoring_end: str | None = "2050-01-01",
     ):
         self.name = name
         self.latitude = latitude

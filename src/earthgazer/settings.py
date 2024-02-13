@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import Optional
 
 from pydantic import field_validator
 from pydantic import model_validator
@@ -13,18 +12,18 @@ logging.basicConfig(level=logging.DEBUG)
 
 class FileManagerSettings(BaseSettings, extra="allow"):
     protocol: str
-    base_path: Optional[str] = "/"
+    base_path: str | None = "/"
 
 
 class DatabaseManagerSettings(BaseSettings, extra="allow"):
     drivername: str = "sqlite"
-    username: Optional[str] = None
-    password: Optional[str] = None
-    host: Optional[str] = None
-    port: Optional[int] = None
-    database: Optional[str] = None
-    url: Optional[URL] = None
-    echo_sql: Optional[bool] = False
+    username: str | None = None
+    password: str | None = None
+    host: str | None = None
+    port: int | None = None
+    database: str | None = None
+    url: URL | None = None
+    echo_sql: bool | None = False
 
     @model_validator(mode="after")
     def validate_url(self):

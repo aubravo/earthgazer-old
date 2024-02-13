@@ -41,10 +41,10 @@ class Landsat_8(Platform):
     ]
 
     def calculate_radiometric_measure(**kwargs) -> str:
-        return RadiometricMeasure.DN
+        return RadiometricMeasure.DN.value
 
     def calculate_athmospheric_reference_level(**kwargs) -> str:
-        return AtmosphericReferenceLevel.TOA
+        return AtmosphericReferenceLevel.TOA.value
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import Optional
+
+import earthgazer.definitions
 
 
 class Band:
-    def __init__(self, name: str, description: Optional[str], wavelength: Optional[float], resolution: Optional[float]):
+    def __init__(self, name: str, description: str | None, wavelength: float | None, resolution: float | None):
         self.name = name
         self.description = description
         self.wavelength = wavelength
@@ -27,9 +28,9 @@ class Platform(ABC):
         raise ValueError(f"Band {name} not found in {self.name}")
 
     @abstractmethod
-    def calculate_radiometric_measure(**kwargs) -> RadiometricMeasure:
+    def calculate_radiometric_measure(**kwargs) -> earthgazer.definitions.RadiometricMeasure:
         pass
 
     @abstractmethod
-    def calculate_athmospheric_reference_level(**kwargs) -> AtmosphericReferenceLevel:
+    def calculate_athmospheric_reference_level(**kwargs) -> earthgazer.definitions.AtmosphericReferenceLevel:
         pass
