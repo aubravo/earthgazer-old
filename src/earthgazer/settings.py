@@ -38,7 +38,7 @@ class DatabaseManagerSettings(BaseSettings, extra="allow"):
             )
             logging.debug("Derivating URL")
             self.url = _url
-        elif type(self.url) is str:
+        elif isinstance(self.url, str):
             logging.debug("Parsing URL")
             self.url = URL.create(self.url)
         return self
