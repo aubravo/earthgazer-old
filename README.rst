@@ -59,7 +59,7 @@ Overview
 
 Satellite image processing pipeline
 
-* Free software: GNU Lesser General Public License v3 or later (LGPLv3+)
+* Free software: GNU GENERAL PUBLIC LICENSE v3 or later (GPLv3+)
 
 Installation
 ============

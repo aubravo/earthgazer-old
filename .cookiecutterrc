@@ -34,7 +34,7 @@ default_context:
     github_actions: "yes"
     github_actions_osx: "no"
     github_actions_windows: "no"
-    license: "GNU Lesser General Public License v3 or later (LGPLv3+)"
+    license: "GNU General Public License v3 or later (GPLv3+)"
     package_name: "earthgazer"
     pre_commit: "yes"
     project_name: "earthgazer"

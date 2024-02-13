@@ -13,7 +13,7 @@ def read(*names, **kwargs):
 setup(
     name="earthgazer",
     version="0.2.1",
-    license="LGPL-3.0-or-later",
+    license="GPL-3.0-or-later",
     description="Satellite image processing pipeline",
     long_description="{}\n{}".format(
         re.compile("^.. start-badges.*^.. end-badges", re.M | re.S).sub("", read("README.rst")),
@@ -31,7 +31,7 @@ setup(
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)" "Operating System :: Unix",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)" "Operating System :: Unix",
         "Operating System :: POSIX",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python",
