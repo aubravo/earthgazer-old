@@ -8,8 +8,8 @@ class Location:
         latitude: float,
         longitude: float,
         description: str | None = "",
-        monitoring_start: str | None = "1990-01-01",
-        monitoring_end: str | None = "2050-01-01",
+        monitoring_start: str = "1990-01-01",
+        monitoring_end: str = "2050-01-01",
     ):
         self.name = name
         self.latitude = latitude

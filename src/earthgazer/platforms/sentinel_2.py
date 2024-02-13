@@ -1,3 +1,6 @@
+from typing import Dict
+from typing import List
+
 from earthgazer.definitions import AtmosphericReferenceLevel
 from earthgazer.definitions import RadiometricMeasure
 from earthgazer.exceptions import PlatformAttributeCalculationException
@@ -7,7 +10,7 @@ from earthgazer.platforms import Platform
 
 class Sentinel_2(Platform):
     name = "SENTINEL_2"
-    bigquery_attribute_mapping = {
+    bigquery_attribute_mapping: Dict = {
         "bigquery_path": "bigquery-public-data.cloud_storage_geo_index.sentinel_2_index",
         "main_id": "product_id",
         "secondary_id": "granule_id",
@@ -26,7 +29,7 @@ class Sentinel_2(Platform):
         "data_type": "NULL",
         "extra_filters": "--",
     }
-    bands = [
+    bands: List = [
         Band(name="B01", description="Coastal aerosol", wavelength=0.443, resolution=60),
         Band(name="B02", description="Blue", wavelength=0.490, resolution=10),
         Band(name="B03", description="Green", wavelength=0.560, resolution=10),
@@ -51,7 +54,8 @@ class Sentinel_2(Platform):
         elif "_MSIL2A_" in main_id:
             return AtmosphericReferenceLevel.BOA.value
         else:
-            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id" f': "{main_id}"')
+            raise PlatformAttributeCalculationException(
+                f"Unable to calculate Athmospheric Reference Level from main_id" f': "{main_id}"')
 
 
 if __name__ == "__main__":

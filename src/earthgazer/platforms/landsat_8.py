@@ -1,3 +1,6 @@
+from typing import Dict
+from typing import List
+
 from earthgazer.definitions import AtmosphericReferenceLevel
 from earthgazer.definitions import RadiometricMeasure
 from earthgazer.location import Location
@@ -8,7 +11,7 @@ from earthgazer.platforms import Platform
 
 class Landsat_8(Platform):
     name = "LANDSAT_8"
-    bigquery_attribute_mapping = {
+    bigquery_attribute_mapping: Dict = {
         "bigquery_path": "bigquery-public-data.cloud_storage_geo_index.landsat_index",
         "main_id": "scene_id",
         "secondary_id": "product_id",
@@ -26,7 +29,7 @@ class Landsat_8(Platform):
         "data_type": "data_type",
         "extra_filters": 'spacecraft_id = "LANDSAT_8"',
     }
-    bands = [
+    bands: List = [
         Band(name="B1", description="Coastal aerosol", wavelength=0.443, resolution=30),
         Band(name="B2", description="Blue", wavelength=0.490, resolution=30),
         Band(name="B3", description="Green", wavelength=0.560, resolution=30),
