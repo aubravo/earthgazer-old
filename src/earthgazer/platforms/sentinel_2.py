@@ -53,4 +53,5 @@ class Sentinel_2(Platform):
         elif "_MSIL2A_" in main_id:
             return AtmosphericReferenceLevel.BOA.value
         else:
-            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id" f': "{main_id}"')
+            raise PlatformAttributeCalculationException(f"Unable to calculate Athmospheric Reference Level from main_id"
+                                                        f': "{main_id}"')

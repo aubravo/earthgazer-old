@@ -58,4 +58,4 @@ default_context:
     version_manager: "bump2version"
     website: "mxdata.dev"
     year_from: "2021"
-    year_to: "2023"
+    year_to: "2024"
