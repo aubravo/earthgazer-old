@@ -1,40 +1,32 @@
-from datetime import date
+import datetime
+
+from pydantic import BaseModel
+from pydantic import field_validator
 
 
-class Location:
-    def __init__(
-        self,
-        name: str,
-        latitude: float,
-        longitude: float,
-        description: str | None = "",
-        monitoring_start: str = "1990-01-01",
-        monitoring_end: str = "2050-01-01",
-    ):
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-        self.description = description
-        date.fromisoformat(monitoring_start)
-        date.fromisoformat(monitoring_end)
-        self.monitoring_start = monitoring_start
-        self.monitoring_end = monitoring_end
+class Location(BaseModel):
+    name: str
+    latitude: float
+    longitude: float
+    description: str
+    monitoring_start: str = datetime.datetime.now(tz=datetime.UTC).date().isoformat()
+    monitoring_end: str = datetime.datetime.now(tz=datetime.UTC).date().replace(year=2050).isoformat()
 
-    def __repr__(self) -> str:
-        return f"{self.name} ({self.latitude},{self.longitude}) - {self.description}"
+    @field_validator("monitoring_start", "monitoring_end")
+    @classmethod
+    def validate_date(cls, iso_date: str):
+        return datetime.date.fromisoformat(iso_date).isoformat()
 
-    @property
-    def as_dict(self):
-        return {
-            "location_name": self.name,
-            "location_latitude": self.latitude,
-            "location_longitude": self.longitude,
-            "location_description": self.description,
-            "location_monitoring_start": self.monitoring_start,
-            "location_monitoring_end": self.monitoring_end,
-        }
+    @field_validator("latitude")
+    @classmethod
+    def validate_latitude(cls, coord: float):
+        if coord < -90 or coord > 90:
+            raise ValueError(f"Invalid latitude coordinate {coord}")
+        return coord
 
-
-if __name__ == "__main__":
-    popocatepetl = Location(name="Popocatepetl", latitude=123.456, longitude=654.321, description="Volcano in Mexico")
-    print(popocatepetl)
+    @field_validator("longitude")
+    @classmethod
+    def validate_longitude(cls, coord: float):
+        if coord < -180 or coord > 180:
+            raise ValueError(f"Invalid longitude coordinate {coord}")
+        return coord
