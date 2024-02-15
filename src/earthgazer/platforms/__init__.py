@@ -41,8 +41,7 @@ class Platform(ABC):
 
     def render_bigquery_template(self, location: Location):
         queries_dir = Path(__file__).parent.parent / "queries"
-        sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir, encoding="utf-8"),
-                                             autoescape=True)
+        sql_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(queries_dir, encoding="utf-8"), autoescape=True)
         mappings = {}
         mappings.update(self.bigquery_attribute_mapping)
         mappings.update(location.model_dump())
