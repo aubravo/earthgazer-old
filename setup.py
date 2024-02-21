@@ -12,7 +12,7 @@ def read(*names, **kwargs):
 
 setup(
     name="earthgazer",
-    version="0.2.1",
+    version="1.0.0",
     license="GPL-3.0-or-later",
     description="Satellite image processing pipeline",
     long_description="{}\n{}".format(

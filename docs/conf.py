@@ -17,7 +17,7 @@ project = "earthgazer"
 year = "2021-2023"
 author = "Alvaro Bravo"
 copyright = f"{year}, {author}"
-version = release = "0.2.1"
+version = release = "1.0.0"
 
 pygments_style = "trac"
 templates_path = ["."]
