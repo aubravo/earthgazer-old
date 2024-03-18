@@ -1,14 +1,32 @@
+"""Earthgazer platforms module.
+This module includes the abstract Platform and Band classes, which are used to define the different satellite platforms and their respective bands.
+"""
+
+import enum
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
 
 import jinja2
 
-import earthgazer.definitions
 from earthgazer.location import Location
 
 
+class RadiometricMeasure(enum.Enum):
+    RADIANCE = "RADIANCE"
+    REFLECTANCE = "REFLECTANCE"
+    DN = "DN"
+
+
+class AtmosphericReferenceLevel(enum.Enum):
+    TOA = "TOA"
+    BOA = "BOA"
+
+
 class Band:
+    """Band class.
+    This class is used to define the different bands of a satellite platform.
+    """
     def __init__(self, name: str, description: str | None, wavelength: float | None, resolution: float | None):
         self.name = name
         self.description = description
@@ -20,6 +38,9 @@ class Band:
 
 
 class Platform(ABC):
+    """Platform class.
+    This Abstract class is used to define the different satellite platforms.
+    """
     name: str
     bigquery_attribute_mapping: dict
     bands: list[Band]
@@ -32,12 +53,22 @@ class Platform(ABC):
         raise ValueError(f"Band {name} not found in {self.name}")
 
     @abstractmethod
-    def calculate_radiometric_measure(**kwargs) -> earthgazer.definitions.RadiometricMeasure:
-        pass
+    def calculate_radiometric_measure(**kwargs) -> RadiometricMeasure:
+        """This method is used to calculate the radiometric measure specific to the platform.
+
+        :return: The radiometric measure type.
+        :rtype: earthgazer.definitions.RadiometricMeasure
+        """
+        ...
 
     @abstractmethod
-    def calculate_athmospheric_reference_level(**kwargs) -> earthgazer.definitions.AtmosphericReferenceLevel:
-        pass
+    def calculate_athmospheric_reference_level(**kwargs) -> AtmosphericReferenceLevel:
+        """_summary_
+
+        :return: _description_
+        :rtype: earthgazer.definitions.AtmosphericReferenceLevel
+        """
+        ...
 
     def render_bigquery_template(self, location: Location):
         queries_dir = Path(__file__).parent.parent / "queries"

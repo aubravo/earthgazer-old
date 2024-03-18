@@ -1,7 +1,7 @@
 from typing import ClassVar
 
-from earthgazer.definitions import AtmosphericReferenceLevel
-from earthgazer.definitions import RadiometricMeasure
+from earthgazer.platforms import AtmosphericReferenceLevel
+from earthgazer.platforms import RadiometricMeasure
 from earthgazer.exceptions import PlatformAttributeCalculationException
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform

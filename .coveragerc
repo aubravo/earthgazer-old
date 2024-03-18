@@ -11,6 +11,10 @@ source =
 parallel = true
 
 [report]
+exclude_lines = 
+    \.\.\.
+    pass
+    pragma: no cover
 show_missing = true
 precision = 2
 omit = *migrations*

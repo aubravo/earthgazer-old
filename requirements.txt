@@ -10,3 +10,4 @@ numpy
 matplotlib
 pillow
 pytest
+luigi

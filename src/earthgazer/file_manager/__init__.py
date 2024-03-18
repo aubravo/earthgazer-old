@@ -3,10 +3,9 @@ import logging
 import fsspec
 
 from earthgazer.settings import EarthGazerSettings
-from earthgazer.utils import Singleton
 
 
-class FileSystems(metaclass=Singleton):
+class FileSystems:
     def __init__(self):
         for file_system_name, file_system_settings in EarthGazerSettings().file_manager.items():  # type: ignore
             try:

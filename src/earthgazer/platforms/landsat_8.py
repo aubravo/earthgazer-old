@@ -1,7 +1,7 @@
 from typing import ClassVar
 
-from earthgazer.definitions import AtmosphericReferenceLevel
-from earthgazer.definitions import RadiometricMeasure
+from earthgazer.platforms import AtmosphericReferenceLevel
+from earthgazer.platforms import RadiometricMeasure
 from earthgazer.platforms import Band
 from earthgazer.platforms import Platform
 
@@ -40,8 +40,8 @@ class Landsat_8(Platform):
         Band(name="B11", description="TIRS 2", wavelength=12.000, resolution=100),
     ]
 
-    def calculate_radiometric_measure(**kwargs) -> str:
+    def calculate_radiometric_measure(self, **kwargs) -> str:
         return RadiometricMeasure.DN.value
 
-    def calculate_athmospheric_reference_level(**kwargs) -> str:
+    def calculate_athmospheric_reference_level(self, **kwargs) -> str:
         return AtmosphericReferenceLevel.TOA.value

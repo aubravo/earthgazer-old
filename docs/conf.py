@@ -10,11 +10,12 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
+    "sphinx_autodoc_typehints"
 ]
 source_suffix = ".rst"
 master_doc = "index"
 project = "earthgazer"
-year = "2021-2023"
+year = "2021-2024"
 author = "Alvaro Bravo"
 copyright = f"{year}, {author}"
 version = release = "1.0.0"

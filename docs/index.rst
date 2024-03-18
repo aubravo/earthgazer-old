@@ -13,7 +13,7 @@ Contents
    readme
    installation
    usage
-   reference/index
+   earthgazer
    contributing
    authors
    changelog
