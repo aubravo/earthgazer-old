@@ -8,24 +8,24 @@ Subpackages
    :maxdepth: 4
 
    earthgazer.database_manager
-   earthgazer.file_manager
+   earthgazer.document_manager
    earthgazer.platforms
 
 Submodules
 ----------
 
-earthgazer.definitions module
------------------------------
-
-.. automodule:: earthgazer.definitions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 earthgazer.exceptions module
 ----------------------------
 
 .. automodule:: earthgazer.exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+earthgazer.file\_manager module
+-------------------------------
+
+.. automodule:: earthgazer.file_manager
    :members:
    :undoc-members:
    :show-inheritance:
@@ -42,14 +42,6 @@ earthgazer.settings module
 --------------------------
 
 .. automodule:: earthgazer.settings
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-earthgazer.utils module
------------------------
-
-.. automodule:: earthgazer.utils
    :members:
    :undoc-members:
    :show-inheritance:

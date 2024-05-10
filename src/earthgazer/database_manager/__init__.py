@@ -1,13 +1,10 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import MappedAsDataclass
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from earthgazer.settings import EarthGazerSettings
 
-
-class Base(DeclarativeBase, MappedAsDataclass):
-    """SQLAlchemy ORM Base class for child classes to inherit from. This shouldn't be used directly"""
+Base = declarative_base()
 
 
 class DatabaseManager:

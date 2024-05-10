@@ -3,8 +3,7 @@ This module includes the abstract Platform and Band classes, which are used to d
 """
 
 import enum
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 import jinja2
@@ -27,6 +26,7 @@ class Band:
     """Band class.
     This class is used to define the different bands of a satellite platform.
     """
+
     def __init__(self, name: str, description: str | None, wavelength: float | None, resolution: float | None):
         self.name = name
         self.description = description
@@ -41,6 +41,7 @@ class Platform(ABC):
     """Platform class.
     This Abstract class is used to define the different satellite platforms.
     """
+
     name: str
     bigquery_attribute_mapping: dict
     bands: list[Band]

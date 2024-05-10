@@ -11,7 +11,7 @@ source =
 parallel = true
 
 [report]
-exclude_lines = 
+exclude_lines =
     \.\.\.
     pass
     pragma: no cover

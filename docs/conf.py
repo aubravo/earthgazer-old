@@ -10,7 +10,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
-    "sphinx_autodoc_typehints"
+    "sphinx_autodoc_typehints",
 ]
 source_suffix = ".rst"
 master_doc = "index"
@@ -20,7 +20,7 @@ author = "Alvaro Bravo"
 copyright = f"{year}, {author}"
 version = release = "1.0.0"
 
-pygments_style = "trac"
+pygments_style = "one-dark"
 templates_path = ["."]
 extlinks = {
     "issue": ("https://github.com/aubravo/earthgazer/issues/%s", "#"),
@@ -43,3 +43,4 @@ html_short_title = f"{project}-{version}"
 napoleon_use_ivar = True
 napoleon_use_rtype = False
 napoleon_use_param = False
+napoleon_include_private_with_doc = False

@@ -10,7 +10,6 @@ from earthgazer.platforms.landsat_8 import Landsat_8
 from earthgazer.platforms.sentinel_2 import Sentinel_2
 from earthgazer.settings import EarthGazerSettings
 
-
 sys.path.append(f"{pathlib.Path(__file__).parent.parent}\\src\\")
 print(sys.path)
 from earthgazer.location import Location  # noqa: E402
@@ -21,12 +20,13 @@ class EarthGazerSettingsTest(unittest.TestCase):
         earthgazer_settings = EarthGazerSettings()
         assert earthgazer_settings.config_path == str(pathlib.Path.home() / "etc/.eg")
         assert pathlib.Path(earthgazer_settings.config_path).exists()
-    
+
     def test_database_validation(self):
         earthgazer_settings = EarthGazerSettings()
         assert earthgazer_settings.database_manager.drivername == "postgresql+psycopg2"
         assert earthgazer_settings.database_manager.username == "earthgazer-user"
-        assert earthgazer_settings.database_manager.password == "earthgazer-password"
+        assert earthgazer_settings.database_manager.password == "earthgazer-password"  # noqa: S105
+        #  Ignoring ruff S105 because this is just testing the database model validator and not a real password
         assert earthgazer_settings.database_manager.host == "localhost"
         assert earthgazer_settings.database_manager.port == 5432
         assert earthgazer_settings.database_manager.database == "earthgazer-test"
@@ -66,7 +66,9 @@ class PlatformTestSentinel2(unittest.TestCase):
             monitoring_start="2021-01-01",
             monitoring_end="2021-12-31",
         )
-        assert sentinel_2.render_bigquery_template(location) == """SELECT
+        assert (
+            sentinel_2.render_bigquery_template(location)
+            == """SELECT
     product_id AS main_id,
     granule_id AS secondary_id,
     CASE WHEN product_id LIKE 'S2A%' THEN "SENTINEL-2A" WHEN product_id LIKE 'S2B%' THEN "SENTINEL-2B" ELSE "SENTINEL-2" END AS mission_id,
@@ -90,6 +92,7 @@ WHERE
     south_lat <= 19.0224 AND
     west_lon <= 98.6279 AND
     east_lon >= 98.6279"""
+        )
 
 
 class PlatformTestLandsat8(unittest.TestCase):
@@ -121,7 +124,9 @@ class PlatformTestLandsat8(unittest.TestCase):
             monitoring_start="2021-01-01",
             monitoring_end="2021-12-31",
         )
-        assert landsat_8.render_bigquery_template(location) == """SELECT
+        assert (
+            landsat_8.render_bigquery_template(location)
+            == """SELECT
     scene_id AS main_id,
     product_id AS secondary_id,
     spacecraft_id AS mission_id,
@@ -145,6 +150,7 @@ WHERE
     south_lat <= 19.0224 AND
     west_lon <= 98.6279 AND
     east_lon >= 98.6279"""
+        )
 
 
 class LocationTest(unittest.TestCase):

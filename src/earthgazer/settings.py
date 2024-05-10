@@ -1,12 +1,9 @@
 import logging
 from pathlib import Path
-from typing import ClassVar
-from typing_extensions import Annotated
-from pydantic import field_validator
-from pydantic import model_validator
-from pydantic import Field
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
+from typing import Annotated, ClassVar
+
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
 logging.basicConfig(level=logging.DEBUG)
@@ -46,7 +43,7 @@ class DatabaseManagerSettings(BaseSettings, extra="allow"):
         return self
 
 
-class EarthGazerSettings(BaseSettings):
+class EarthGazerSettings(BaseSettings, extra="allow"):
     config_path: Annotated[str, Field(validate_default=True)] = str(Path(Path.home() / ".eg"))
     database_manager: DatabaseManagerSettings = DatabaseManagerSettings()
     file_manager: ClassVar[dict[str, FileManagerSettings]] = {}

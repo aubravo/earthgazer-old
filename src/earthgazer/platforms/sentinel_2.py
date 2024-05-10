@@ -1,10 +1,7 @@
 from typing import ClassVar
 
-from earthgazer.platforms import AtmosphericReferenceLevel
-from earthgazer.platforms import RadiometricMeasure
 from earthgazer.exceptions import PlatformAttributeCalculationException
-from earthgazer.platforms import Band
-from earthgazer.platforms import Platform
+from earthgazer.platforms import AtmosphericReferenceLevel, Band, Platform, RadiometricMeasure
 
 
 class Sentinel_2(Platform):
